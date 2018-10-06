@@ -81,7 +81,7 @@ for table in sub_tables[1:]:
             municipalities = []
             for municipality in municipalities_li:
                 municipality_str = municipality.get_text()
-                municipality_str = re.sub('\d|-- | --', '', municipality_str)
+                municipality_str = re.sub('\d|-- | --|   [ . ]', '', municipality_str)
                 municipalities.append(municipality_str)
 
             counties_municipalities[c_key] = pd.Series(municipalities)
