@@ -28,6 +28,12 @@ main_table = html.find('table')
 sub_tables = main_table.find_all('table')
 data = sub_tables[0].find_all('td')
 
+
+#parses the wikipedia pages -- firstly stores the region, then stores the
+#countie and request to the wikipedia page to get counties' municipalities.
+#The data are stored in dictionaries where the key is the region/counties
+#and the values are the counties/municipalities that belongs to it.
+
 # NOTE: special treatment for Attica Region
 r_key = data[0].get_text()
 r_counties = []
@@ -47,13 +53,15 @@ for index, county in enumerate(data[2:]):
         for municipality in municipalities_li:
             municipality_str = municipality.get_text()
             municipality_str = re.sub('\d|-- | --|\.', '', municipality_str)
-            municipalities.append(municipality_str)
+            # NOTE: in order to skip an error in Peiraios county
+            if len(municipality_str) < 200:
+                municipalities.append(municipality_str)
 
         counties_municipalities[c_key] = pd.Series(municipalities)
 region_counties[r_key] = pd.Series(r_counties)
 
 
-
+#for the rest of the regions
 for table in sub_tables[1:]:
     data = table.find_all('td')
     r_key = data[0].get_text()
