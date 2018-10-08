@@ -30,11 +30,12 @@ def wiki_scraper():
     # The data are stored in dictionaries where the key is the region/counties
     # and the values are the counties/municipalities that belongs to it.
     # NOTE: special treatment for Attica Region
-    r_key = data[0].get_text()
+    r_key = re.sub('\n', '', data[0].get_text())
     r_counties = []
+    c_key = ""
     for index, county in enumerate(data[2:]):
-        if index%2 == 0:
-            r_counties.append(county.get_text())
+        if index % 2 == 0:
+            r_counties.append(re.sub('\n', '', county.get_text()))
             c_key = county.get_text()
         else:
             print(county.get_text(), "\n")
@@ -47,7 +48,7 @@ def wiki_scraper():
             municipalities = []
             for municipality in municipalities_li:
                 municipality_str = municipality.get_text()
-                municipality_str = re.sub('\d|-- | --|\.', '', municipality_str)
+                municipality_str = re.sub('\d|-- | --|\.|\n', '', municipality_str)
 
                 # NOTE: in order to skip an error in Peiraios county
                 if len(municipality_str) < 200:
@@ -55,8 +56,6 @@ def wiki_scraper():
 
             counties_municipalities[c_key] = pd.Series(municipalities)
     region_counties[r_key] = pd.Series(r_counties)
-
-    count = 0
 
     # for the rest of the regions
     for table in sub_tables[1:]:
@@ -84,16 +83,15 @@ def wiki_scraper():
                     municipalities.append(municipality_str)
 
                 counties_municipalities[c_key] = pd.Series(municipalities)
-                count += len(municipalities)
 
         region_counties[r_key] = pd.Series(r_counties)
 
     # stores dictionaries into .csv
-    rc = pd.DataFrame(region_counties).dropna()
-    rc.to_csv("Kapodistria_scheme/Region_Counties.csv", sep='\t', columns=RC.columns, index=False)
+    rc = pd.DataFrame(region_counties)
+    rc.to_csv("Kapodistria_scheme/Regions_Counties.csv", sep='\t', columns=rc.columns, index=False)
 
-    cm = pd.DataFrame(counties_municipalities).dropna()
-    cm.to_csv("Kapodistria_scheme/Counties_Municipalities.csv", sep='\t', columns=CM.columns, index=False)
+    cm = pd.DataFrame(counties_municipalities)
+    cm.to_csv("Kapodistria_scheme/Counties_Municipalities.csv", sep='\t', columns=cm.columns, index=False)
 
     return rc, cm
 
