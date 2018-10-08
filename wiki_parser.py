@@ -35,10 +35,11 @@ def wiki_scraper():
     c_key = ""
     for index, county in enumerate(data[2:]):
         if index % 2 == 0:
-            r_counties.append(re.sub('\n', '', county.get_text()))
-            c_key = county.get_text()
+            c_key = re.sub('\n', '', county.get_text())
+            r_counties.append(c_key)
+
         else:
-            print(county.get_text(), "\n")
+            print('GET ', county.get_text(), "\n")
             url = county.find('a',  href=True)
             munic_page = requests.get('https://el.wikipedia.org/'+url['href'])
             sub_soup = BeautifulSoup(munic_page.content, 'html.parser')
@@ -47,11 +48,13 @@ def wiki_scraper():
             municipalities_li = municipalities_list.find_all('li')
             municipalities = []
             for municipality in municipalities_li:
-                municipality_str = municipality.get_text()
-                municipality_str = re.sub('\d|-- | --|\.|\n', '', municipality_str)
+                municipality_str = re.sub('\d|-- | --|\.|\n', '', municipality.get_text())
+                if municipality_str[0] == ' ':
+                    municipality_str = municipality_str[1:]
 
                 # NOTE: in order to skip an error in Peiraios county
-                if len(municipality_str) < 200:
+                if len(municipality_str.split(' ')) > 1 and \
+                        (municipality_str.split(' ')[0] == "Κοινότητα" or municipality_str.split(' ')[0] == "Δήμος"):
                     municipalities.append(municipality_str)
 
             counties_municipalities[c_key] = pd.Series(municipalities)
@@ -64,11 +67,12 @@ def wiki_scraper():
         r_counties = []
         for index, county in enumerate(data[1:]):
             if index % 2 == 0:
-                r_counties.append(re.sub('\n', '', county.get_text()))
-                c_key = county.get_text()
+                c_key = re.sub('\n', '', county.get_text())
+                r_counties.append(c_key)
+
             else:
                 # gets municipalities
-                print(county.get_text(), "\n")
+                print("GET ", county.get_text())
                 url = county.find('a',  href=True)
                 munic_page = requests.get('https://el.wikipedia.org/'+url['href'])
                 sub_soup = BeautifulSoup(munic_page.content, 'html.parser')
@@ -79,8 +83,11 @@ def wiki_scraper():
                 for municipality in municipalities_li:
                     municipality_str = municipality.get_text()
                     municipality_str = re.sub('\d|-- | --|   [ . ]|\n', '', municipality_str)
-
-                    municipalities.append(municipality_str)
+                    if municipality_str[0] == ' ':
+                        municipality_str = municipality_str[1:]
+                    if len(municipality_str.split(' ')) > 1 and \
+                            (municipality_str.split(' ')[0] == "Κοινότητα" or municipality_str.split(' ')[0] == "Δήμος"):
+                        municipalities.append(municipality_str)
 
                 counties_municipalities[c_key] = pd.Series(municipalities)
 
