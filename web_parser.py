@@ -5,11 +5,7 @@ import re
 from bs4 import BeautifulSoup
 
 
-try:
-    RC = pd.read_csv("Kapodistria_scheme/Region_Counties.csv", sep='\t').dropna()
-    CM = pd.read_csv("Kapodistria_scheme/Counties_Municipalities.csv", sep='\t').dropna()
-
-except:
+def wiki_scraper():
     try:
         with open("Kapodistria_scheme/Wiki_Object", 'rb') as wo:
             page = pickle.load(wo)
@@ -52,6 +48,7 @@ except:
             for municipality in municipalities_li:
                 municipality_str = municipality.get_text()
                 municipality_str = re.sub('\d|-- | --|\.', '', municipality_str)
+
                 # NOTE: in order to skip an error in Peiraios county
                 if len(municipality_str) < 200:
                     municipalities.append(municipality_str)
@@ -71,6 +68,7 @@ except:
                 r_counties.append(re.sub('\n', '', county.get_text()))
                 c_key = county.get_text()
             else:
+                # gets municipalities
                 print(county.get_text(), "\n")
                 url = county.find('a',  href=True)
                 munic_page = requests.get('https://el.wikipedia.org/'+url['href'])
@@ -91,18 +89,11 @@ except:
         region_counties[r_key] = pd.Series(r_counties)
 
     # stores dictionaries into .csv
-    RC = pd.DataFrame(region_counties).dropna()
-    RC.to_csv("Kapodistria_scheme/Region_Counties.csv", sep='\t', columns=RC.columns, index=False)
+    rc = pd.DataFrame(region_counties).dropna()
+    rc.to_csv("Kapodistria_scheme/Region_Counties.csv", sep='\t', columns=RC.columns, index=False)
 
-    CM = pd.DataFrame(counties_municipalities).dropna()
-    CM.to_csv("Kapodistria_scheme/Counties_Municipalities.csv", sep='\t', columns=CM.columns, index=False)
+    cm = pd.DataFrame(counties_municipalities).dropna()
+    cm.to_csv("Kapodistria_scheme/Counties_Municipalities.csv", sep='\t', columns=CM.columns, index=False)
 
+    return rc, cm
 
-regions = RC.columns[1:]
-counties = []
-for r in regions:
-    counties += list(RC[r])
-
-print(regions)
-print("\n\n\n\n\n")
-print(counties)
