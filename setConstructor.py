@@ -14,35 +14,53 @@ except FileNotFoundError:
 
 # reads the entities from the dataframes and constructs ids
 # Ids form will be Kapodistria_RRCCMM where RR is region's id, CC county's id and MM municipality's id
-regions = list(rc.columns)
-regions_id = ["%02d" % i + '0000' for i in range(1, len(regions)+1)]
 
-counties = []
-counties_id = []
-for index, r in enumerate(regions):
+
+regions_labels = list(rc.columns)
+regions_IDs = ["%02d" % i + '0000' for i in range(1, len(regions_labels)+1)]
+regions_URIs = ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>' for label in regions_labels]
+
+
+counties_labels = []
+counties_IDs = []
+counties_URIs = []
+for index, r in enumerate(regions_labels):
     r_counties = list(rc[r].dropna())
-    counties += r_counties
-    counties_id += ["%02d" % index + "%02d" % i + '00' for i in range(1, len(r_counties)+1)]
+    counties_labels += r_counties
+    counties_IDs += ["%02d" % index + "%02d" % i + '00' for i in range(1, len(r_counties)+1)]
+    counties_URIs += ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>' for label in r_counties]
 
-municipalities = []
-municipalities_id = []
-for index, c in enumerate(counties):
+
+municipalities_lables = []
+municipalities_IDs = []
+municipalities_URIs = []
+for index, c in enumerate(counties_labels):
     c_municipalities = list(cm[c].dropna())
-    municipalities += c_municipalities
-    municipalities_id += [counties_id[index][:-2] + "%02d" % i for i in range(1, len(c_municipalities)+1)]
+    municipalities_lables += c_municipalities
+    municipalities_IDs += [counties_IDs[index][:-2] + "%02d" % i for i in range(1, len(c_municipalities)+1)]
+    municipalities_URIs += ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+                            for label in c_municipalities]
 
-# generates csv -- it will contain IDs Predicate Label
-total_entities = regions + counties + municipalities
-ids = ['Kapodistria_' + id for id in regions_id + counties_id + municipalities_id]
-id_predicate = ['hasKapodistria_ID'] * len(ids)
-df_total_entities = pd.DataFrame({'ID': pd.Series(ids),
-                                  'ID_Predicate': pd.Series(id_predicate),
-                                  'Administrative Unit': pd.Series(total_entities)
-                                  })
-df_total_entities.to_csv("datasets/Kapodistria_scheme/Kapodistria_AU.csv", sep='\t', index=False)
 
-print("Regions:\t\t", len(regions))
-print("Counties:\t\t", len(counties))
-print("Municipalities:\t", len(municipalities))
-print("\nTotal:\t\t", len(total_entities))
+labels = regions_labels + counties_labels + municipalities_lables
+URIs = regions_URIs + counties_URIs + municipalities_URIs
+IDs = ['Kapodistria_' + id for id in regions_IDs + counties_IDs + municipalities_IDs]
+size = len(labels)
+
+p_has_id = ['monto:hasKapodistria_ID'] * size
+p_has_label = ['myonto:has_label'] * size
+p_type = ['rdf:type'] * size
+
+print("Consistency: ", len(p_has_id), len(IDs), len(URIs), len(labels),"\n\n")
+
+dataset = pd.DataFrame({'Subject': pd.Series(URIs * 2),
+                        'Predicate': pd.Series(p_has_id + p_has_label),
+                        'Object': pd.Series(IDs + labels)
+                        })
+dataset.to_csv("datasets/Kapodistria_scheme/Kapodistria_AU.csv", sep='\t', index=False)
+
+print("Regions:\t\t", len(regions_labels))
+print("Counties:\t\t", len(counties_labels))
+print("Municipalities:\t", len(municipalities_lables))
+print("\nTotal:\t\t", len(labels))
 
