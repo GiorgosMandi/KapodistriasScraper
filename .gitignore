@@ -4,3 +4,5 @@ Kapodistria_scheme/
 \.idea/
 
 __pycache__/
+
+datasets/
