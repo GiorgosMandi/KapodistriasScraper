@@ -20,7 +20,6 @@ regions_labels = list(rc.columns)
 regions_IDs = ["%02d" % i + '0000' for i in range(1, len(regions_labels)+1)]
 regions_URIs = ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>' for label in regions_labels]
 
-
 counties_labels = []
 counties_IDs = []
 counties_URIs = []
@@ -45,17 +44,20 @@ for index, c in enumerate(counties_labels):
 labels = regions_labels + counties_labels + municipalities_lables
 URIs = regions_URIs + counties_URIs + municipalities_URIs
 IDs = ['Kapodistria_' + id for id in regions_IDs + counties_IDs + municipalities_IDs]
-size = len(labels)
+types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +     \
+        ['<geoclass_second-order_administrative_division>'] * len(counties_URIs) +   \
+        ['<geoclass_third-order_administrative_division>'] * len(municipalities_URIs)
 
+size = len(labels)
 p_has_id = ['monto:hasKapodistria_ID'] * size
 p_has_label = ['myonto:has_label'] * size
 p_type = ['rdf:type'] * size
 
-print("Consistency: ", len(p_has_id), len(IDs), len(URIs), len(labels),"\n\n")
+print("Consistency: ", len(p_has_id), len(IDs), len(URIs), len(labels), "\n\n")
 
-dataset = pd.DataFrame({'Subject': pd.Series(URIs * 2),
-                        'Predicate': pd.Series(p_has_id + p_has_label),
-                        'Object': pd.Series(IDs + labels)
+dataset = pd.DataFrame({'Subject': pd.Series(URIs * 3),
+                        'Predicate': pd.Series(p_has_id + p_type + p_has_label),
+                        'Object': pd.Series(IDs + types + labels)
                         })
 dataset.to_csv("datasets/Kapodistria_scheme/Kapodistria_AU.csv", sep='\t', index=False)
 
