@@ -45,7 +45,7 @@ for index, c in enumerate(counties_labels):
 
 # all the gathered data are fused in order to create csv's columns.
 # Subjects & Objects
-labels = regions_labels + counties_labels + municipalities_lables
+labels = ['\'' + label + '\'' for label in regions_labels + counties_labels + municipalities_lables]
 URIs = regions_URIs + counties_URIs + municipalities_URIs
 IDs = ['Kapodistria_' + id for id in regions_IDs + counties_IDs + municipalities_IDs]
 UpperLevels = counties_UpperLevel + municipalities_UpperLevel
