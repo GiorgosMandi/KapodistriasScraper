@@ -1,8 +1,6 @@
 import pandas as pd
 from wiki_parser import wiki_scraper
 
-import random
-seed = random.randint(1000, 9999)
 
 # If the files exist they are loaded, else they are generated through wiki_scraper
 try:
@@ -12,9 +10,10 @@ try:
 except FileNotFoundError:
     rc, cm = wiki_scraper()
 
-# reads the entities from the dataframes and constructs ids
-# Ids form will be Kapodistria_RRCCMM where RR is region's id, CC county's id and MM municipality's id
-
+# reads the entities from the dataframes and constructs/stores the neseccary values
+# IDs will be Kapodistria_RRCCMM where RR is region's id, CC county's id and MM municipality's id
+# URIs will be url to the wikipedia page
+# NOTE: URIs of municipalities doesn't reflect to the actual wiki pages
 
 regions_labels = list(rc.columns)
 regions_IDs = ["%02d" % i + '0000' for i in range(1, len(regions_labels)+1)]
@@ -44,7 +43,8 @@ for index, c in enumerate(counties_labels):
                             for label in c_municipalities]
     municipalities_UpperLevel += [counties_URIs[index]] * len(c_municipalities)
 
-
+# all the gathered data are fused in order to create csv's columns.
+# Subjects & Objects
 labels = regions_labels + counties_labels + municipalities_lables
 URIs = regions_URIs + counties_URIs + municipalities_URIs
 IDs = ['Kapodistria_' + id for id in regions_IDs + counties_IDs + municipalities_IDs]
@@ -52,15 +52,15 @@ UpperLevels = counties_UpperLevel + municipalities_UpperLevel
 types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +     \
         ['<geoclass_second-order_administrative_division>'] * len(counties_URIs) +   \
         ['<geoclass_third-order_administrative_division>'] * len(municipalities_URIs)
-print(UpperLevels)
+
+# Predicates
 size = len(labels)
 p_has_id = ['monto:hasKapodistria_ID'] * size
 p_has_label = ['myonto:has_label'] * size
 p_type = ['rdf:type'] * size
 p_hasUpperLevel = ['monto:has_UpperLevel'] * len(UpperLevels)
 
-print("Consistency: ", len(p_has_id), len(IDs), len(URIs), len(labels), len(URIs[13:]), len(UpperLevels), "\n\n")
-
+# csv Construction
 dataset = pd.DataFrame({'Subject': pd.Series(URIs * 3 + URIs[13:]),
                         'Predicate': pd.Series(p_has_id + p_type + p_has_label + p_hasUpperLevel),
                         'Object': pd.Series(IDs + types + labels + UpperLevels)
