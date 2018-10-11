@@ -1,9 +1,13 @@
 import pandas as pd
 from wiki_parser import wiki_scraper
 
+
+yago_matched = pd.read_csv('datasets/yago_matched.tsv', sep='\t')
+legistlations = ('<https://el.wikipedia.org/wiki/Σχέδιο_«Καποδίστριας»>',
+                 '<https://el.wikipedia.org/wiki/Πρόγραμμα_«Καλλικράτης»>')
+
 temporalID = ['<1>'] * 2 + ['<2>'] * 2
-subjects = ['<https://el.wikipedia.org/wiki/Σχέδιο_«Καποδίστριας»>'] * 2 \
-            + ['<https://el.wikipedia.org/wiki/Πρόγραμμα_«Καλλικράτης»>'] * 2
+subjects = [legistlations[0]] * 2 + [legistlations[1]] * 2
 predicates = ['rdf:type', 'myonto:has_label', 'rdf:type', 'myonto:has_label']
 objects = ['<LegislativeModification>', 'Σχέδιο_«Καποδίστριας»',
            '<LegislativeModification>', 'Σχέδιο_«Καποδίστριας»']
@@ -61,18 +65,26 @@ types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +
         ['<geoclass_second-order_administrative_division>'] * len(counties_URIs) +   \
         ['<geoclass_third-order_administrative_division>'] * len(municipalities_URIs)
 
+
 # forms the columns of the csv
 size = len(labels)
 for i in range(size):
-    temporalID += [temporal_id[i]] * 6
-    subjects += [URIs[i]] * 6
-    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'myonto:has_label',
-                   'monto:has_UpperLevel', '<wasCreatedOnDate>', '<wasDestroyedOnDate>']
+    temporalID += [temporal_id[i]] * 7
+    subjects += [URIs[i]] * 7
     objects += [types[i], IDs[i], labels[i], UpperLevels[i], '\'1997-##-##\'^^xsd:date',
-                '\'2010-##-##\'^^xsd:date']
+                '\'2010-##-##\'^^xsd:date', legistlations[0]]
+    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'myonto:has_label',
+                   'monto:has_UpperLevel', '<wasCreatedOnDate>', '<wasDestroyedOnDate>',
+                   'monto:basedOn']
+    if URIs[i] in yago_matched['Wiki_Kapodistria'].values:
+        index = yago_matched.index[yago_matched['Wiki_Kapodistria'] == URIs[i]][0]
+        temporalID += [IDs[i][:-1] + '_2>'] * 3
+        subjects += [URIs[i]] * 3
+        predicates += ['<wasCreatedOnDate>', 'monto:basedOn', 'rdf:sameAs']
+        objects += ['\'2010-##-##\'^^xsd:date', legistlations[1], yago_matched['RegionUnits_yagoDate'][index]]
 
 # csv Construction
-dataset = pd.DataFrame({'TemporalID' : pd.Series(temporalID),
+dataset = pd.DataFrame({'TemporalID': pd.Series(temporalID),
                         'Subject': pd.Series(subjects),
                         'Predicate': pd.Series(predicates),
                         'Object': pd.Series(objects)
