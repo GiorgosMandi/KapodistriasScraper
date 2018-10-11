@@ -1,6 +1,13 @@
 import pandas as pd
 from wiki_parser import wiki_scraper
 
+temporalID = ['<1>'] * 2 + ['<2>'] * 2
+subjects = ['<https://el.wikipedia.org/wiki/Σχέδιο_«Καποδίστριας»>'] * 2 \
+            + ['<https://el.wikipedia.org/wiki/Πρόγραμμα_«Καλλικράτης»>'] * 2
+predicates = ['rdf:type', 'myonto:has_label', 'rdf:type', 'myonto:has_label']
+objects = ['<LegislativeModification>', 'Σχέδιο_«Καποδίστριας»',
+           '<LegislativeModification>', 'Σχέδιο_«Καποδίστριας»']
+
 # If the files exist they are loaded, else they are generated through wiki_scraper
 try:
     rc = pd.read_csv("datasets/Kapodistria_scheme/Regions_Counties.csv", sep='\t')
@@ -56,10 +63,6 @@ types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +
 
 # forms the columns of the csv
 size = len(labels)
-temporalID = []
-subjects = []
-predicates = []
-objects = []
 for i in range(size):
     temporalID += [temporal_id[i]] * 6
     subjects += [URIs[i]] * 6
