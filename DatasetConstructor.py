@@ -18,6 +18,7 @@ except FileNotFoundError:
 regions_labels = list(rc.columns)
 regions_IDs = ["%02d" % i + '0000' for i in range(1, len(regions_labels)+1)]
 regions_URIs = ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>' for label in regions_labels]
+regions_UpperLevel = ['<Greece>'] * len(regions_labels)
 
 counties_labels = []
 counties_IDs = []
@@ -48,22 +49,25 @@ for index, c in enumerate(counties_labels):
 labels = ['\'' + label + '\'' for label in regions_labels + counties_labels + municipalities_lables]
 URIs = regions_URIs + counties_URIs + municipalities_URIs
 IDs = ['Kapodistria_' + id for id in regions_IDs + counties_IDs + municipalities_IDs]
-UpperLevels = counties_UpperLevel + municipalities_UpperLevel
+UpperLevels = regions_UpperLevel + counties_UpperLevel + municipalities_UpperLevel
 types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +     \
         ['<geoclass_second-order_administrative_division>'] * len(counties_URIs) +   \
         ['<geoclass_third-order_administrative_division>'] * len(municipalities_URIs)
 
-# Predicates
+# forms the columns of the csv
 size = len(labels)
-p_has_id = ['monto:hasKapodistria_ID'] * size
-p_has_label = ['myonto:has_label'] * size
-p_type = ['rdf:type'] * size
-p_hasUpperLevel = ['monto:has_UpperLevel'] * len(UpperLevels)
+subjects = []
+predicates = []
+objects = []
+for i in range(size):
+    subjects += [URIs[i]] * 4
+    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'myonto:has_label', 'monto:has_UpperLevel']
+    objects += [types[i], IDs[i], labels[i], UpperLevels[i]]
 
 # csv Construction
-dataset = pd.DataFrame({'Subject': pd.Series(URIs * 3 + URIs[13:]),
-                        'Predicate': pd.Series(p_has_id + p_type + p_has_label + p_hasUpperLevel),
-                        'Object': pd.Series(IDs + types + labels + UpperLevels)
+dataset = pd.DataFrame({'Subject': pd.Series(subjects),
+                        'Predicate': pd.Series(predicates),
+                        'Object': pd.Series(objects)
                         })
 dataset.to_csv("datasets/Kapodistria_scheme/Kapodistria_AU.csv", sep='\t', index=False)
 
