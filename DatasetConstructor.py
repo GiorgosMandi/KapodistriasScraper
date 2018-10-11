@@ -1,7 +1,6 @@
 import pandas as pd
 from wiki_parser import wiki_scraper
 
-
 # If the files exist they are loaded, else they are generated through wiki_scraper
 try:
     rc = pd.read_csv("datasets/Kapodistria_scheme/Regions_Counties.csv", sep='\t')
@@ -46,9 +45,10 @@ for index, c in enumerate(counties_labels):
 
 # all the gathered data are fused in order to create csv's columns.
 # Subjects & Objects
-labels = ['\'' + label + '\'' for label in regions_labels + counties_labels + municipalities_lables]
 URIs = regions_URIs + counties_URIs + municipalities_URIs
-IDs = ['Kapodistria_' + id for id in regions_IDs + counties_IDs + municipalities_IDs]
+IDs = ['<Kapodistria_' + ids + '>' for ids in regions_IDs + counties_IDs + municipalities_IDs]
+temporal_id = [ids[:-1] + '_1>' for ids in IDs]
+labels = ['\'' + label + '\'' for label in regions_labels + counties_labels + municipalities_lables]
 UpperLevels = regions_UpperLevel + counties_UpperLevel + municipalities_UpperLevel
 types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +     \
         ['<geoclass_second-order_administrative_division>'] * len(counties_URIs) +   \
@@ -56,16 +56,21 @@ types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +
 
 # forms the columns of the csv
 size = len(labels)
+temporalID = []
 subjects = []
 predicates = []
 objects = []
 for i in range(size):
-    subjects += [URIs[i]] * 4
-    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'myonto:has_label', 'monto:has_UpperLevel']
-    objects += [types[i], IDs[i], labels[i], UpperLevels[i]]
+    temporalID += [temporal_id[i]] * 6
+    subjects += [URIs[i]] * 6
+    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'myonto:has_label',
+                   'monto:has_UpperLevel', '<wasCreatedOnDate>', '<wasDestroyedOnDate>']
+    objects += [types[i], IDs[i], labels[i], UpperLevels[i], '\'1997-##-##\'^^xsd:date',
+                '\'2010-##-##\'^^xsd:date']
 
 # csv Construction
-dataset = pd.DataFrame({'Subject': pd.Series(subjects),
+dataset = pd.DataFrame({'TemporalID' : pd.Series(temporalID),
+                        'Subject': pd.Series(subjects),
                         'Predicate': pd.Series(predicates),
                         'Object': pd.Series(objects)
                         })
