@@ -2,16 +2,16 @@ import pandas as pd
 from wiki_parser import wiki_scraper
 
 # dataset with the matches in yagoDateFacts
-yago_matched = pd.read_csv('datasets/yago_matched.tsv', sep='\t')
+yago_matched = pd.read_csv('datasets/yago/yago_matched.tsv', sep='\t')
 legistlations = ('<https://el.wikipedia.org/wiki/Σχέδιο_«Καποδίστριας»>',
                  '<https://el.wikipedia.org/wiki/Πρόγραμμα_«Καλλικράτης»>')
 
 # insert legislations data in the output csv
 temporalID = ['<1>'] * 2 + ['<2>'] * 2
 subjects = [legistlations[0]] * 2 + [legistlations[1]] * 2
-predicates = ['rdf:type', 'myonto:has_label', 'rdf:type', 'myonto:has_label']
-objects = ['<LegislativeModification>', 'Σχέδιο_«Καποδίστριας»',
-           '<LegislativeModification>', 'Σχέδιο_«Καποδίστριας»']
+predicates = ['rdf:type', 'rdf:label', 'rdf:type', 'myonto:has_label']
+objects = ['<LegislativeModification>', '\'Σχέδιο_«Καποδίστριας»\'',
+           '<LegislativeModification>', '\'Πρόγραμμα_«Καλλικράτης»\'']
 
 # If the files exist they are loaded, else they are generated through wiki_scraper
 try:
@@ -41,7 +41,7 @@ counties_UpperLevel = []
 for index, r in enumerate(regions_labels):
     r_counties = list(rc[r].dropna())
     counties_labels += r_counties
-    counties_IDs += ["%02d" % index + "%02d" % i + '00' for i in range(1, len(r_counties)+1)]
+    counties_IDs += ["%02d" % (index + 1) + "%02d" % i + '00' for i in range(1, len(r_counties)+1)]
     counties_UpperLevel += [regions_URIs[index]] * len(r_counties)
     counties_URIs += ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                       for label in r_counties]
@@ -78,7 +78,7 @@ for i in range(size):
     subjects += [URIs[i]] * 7
     objects += [types[i], IDs[i], labels[i], UpperLevels[i], '\'1997-##-##\'^^xsd:date',
                 '\'2010-##-##\'^^xsd:date', legistlations[0]]
-    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'myonto:has_label',
+    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'rdf:label',
                    'monto:has_UpperLevel', '<wasCreatedOnDate>', '<wasDestroyedOnDate>',
                    'monto:basedOn']
 
