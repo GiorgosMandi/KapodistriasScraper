@@ -66,9 +66,9 @@ IDs = ['<Kapodistrias_' + ids + '>' for ids in regions_IDs + prefectures_IDs + m
 temporal_id = [ids[:-1] + '_1>' for ids in IDs]
 labels = ['\'' + label + '\'' for label in regions_labels + prefectures_labels + municipalities_lables]
 UpperLevels = regions_UpperLevel + prefectures_UpperLevel + municipalities_UpperLevel
-types = ['<geoclass_first-order_administrative_division>'] * len(regions_URIs) +     \
-        ['<geoclass_second-order_administrative_division>'] * len(prefectures_URIs) +   \
-        ['<geoclass_third-order_administrative_division>'] * len(municipalities_URIs)
+types = ['<Region>'] * len(regions_URIs) +     \
+        ['<Prefecture>'] * len(prefectures_URIs) +   \
+        ['<Municipality>'] * len(municipalities_URIs)
 
 
 # forms the columns of the csv
