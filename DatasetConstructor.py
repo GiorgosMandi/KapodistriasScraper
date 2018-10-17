@@ -6,12 +6,14 @@ yago_matched = pd.read_csv('datasets/yago/yago_matched.tsv', sep='\t')
 legistlations = ('<https://el.wikipedia.org/wiki/Σχέδιο_«Καποδίστριας»>',
                  '<https://el.wikipedia.org/wiki/Πρόγραμμα_«Καλλικράτης»>')
 
+subjects = []
+predicates = []
+objects = []
 # insert legislations data in the output csv
-temporalID = ['<1>'] * 2 + ['<2>'] * 2
-subjects = [legistlations[0]] * 2 + [legistlations[1]] * 2
-predicates = ['rdf:type', 'rdf:label', 'rdf:type', 'myonto:has_label']
-objects = ['<LegislativeModification>', '\'Σχέδιο_«Καποδίστριας»\'',
-           '<LegislativeModification>', '\'Πρόγραμμα_«Καλλικράτης»\'']
+# subjects = [legistlations[0]] * 2 + [legistlations[1]] * 2
+# predicates = ['rdf:type', 'rdf:label', 'rdf:type', 'myonto:has_label']
+# objects = ['<LegislativeModification>', '\'Σχέδιο_«Καποδίστριας»\'',
+#           '<LegislativeModification>', '\'Πρόγραμμα_«Καλλικράτης»\'']
 
 # If the files exist they are loaded, else they are generated through wiki_scraper
 try:
@@ -74,7 +76,6 @@ types = ['<Region>'] * len(regions_URIs) +     \
 # forms the columns of the csv
 size = len(labels)
 for i in range(size):
-    temporalID += [temporal_id[i]] * 7
     subjects += [URIs[i]] * 7
     objects += [types[i], IDs[i], labels[i], UpperLevels[i], '\'1997-##-##\'^^xsd:date',
                 '\'2011-##-##\'^^xsd:date', legistlations[0]]
@@ -82,20 +83,9 @@ for i in range(size):
                    'monto:has_UpperLevel', '<wasCreatedOnDate>', '<wasDestroyedOnDate>',
                    'monto:basedOn']
 
-    # in case this division was found in yagoDateFacts we connect it using sameAs predicate
-    # NOTE: I use the same URI meanig I declare an kapodistria's entity to be the same with
-    # a Kallikratis's one
-    if URIs[i] in yago_matched['Wiki_Kapodistria'].values:
-        index = yago_matched.index[yago_matched['Wiki_Kapodistria'] == URIs[i]][0]
-        temporalID += [IDs[i][:-1] + '_2>'] * 3
-        subjects += [URIs[i]] * 3
-        predicates += ['<wasCreatedOnDate>', 'monto:basedOn', 'rdf:sameAs']
-        objects += ['\'2010-##-##\'^^xsd:date', legistlations[1],
-                    yago_matched['RegionUnits_yagoDate'][index]]
 
 # csv Construction
-dataset = pd.DataFrame({'TemporalID': pd.Series(temporalID),
-                        'Subject': pd.Series(subjects),
+dataset = pd.DataFrame({'Subject': pd.Series(subjects),
                         'Predicate': pd.Series(predicates),
                         'Object': pd.Series(objects)
                         })
