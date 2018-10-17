@@ -66,20 +66,28 @@ def wiki_scraper():
                         # Many cases!
                         munic_id = municipality_str.replace(" ", "_")
                         sub = sub_html.find('span', {"id": munic_id})
-                    if sub is None:
-                        # Mεταξάδων case
-                        munic_id = "--_" + municipality_str.replace(" ", "_") + "_-"
-                        sub = sub_html.find('span', {"id": munic_id})
 
+                    # finds the element that the districts names are located
                     flag = sub is None
                     while not flag and sub.name != 'dl':
                         sub = sub.next_element
                         flag = sub is None
+
                     districts = []
                     if not flag:
+                        # gets the districts and cleans their text
                         for au in sub.find_all('dd'):
                             if au.find('b') is not None:
-                                districts.append(au.find('b').get_text())
+                                district_str = au.find('b').get_text()
+
+                                # clean str
+                                district_str = re.sub('\d|[|]', '', district_str)
+                                if district_str[0] == ' ':
+                                    district_str = district_str[1:]
+                                if municipality_str[-1] == ' ':
+                                    district_str = district_str[:-1]
+
+                                districts.append(district_str)
 
                     # insertion to the output
                     municipalities_districts[municipality_str] = pd.Series(districts)
@@ -113,8 +121,8 @@ def wiki_scraper():
                     municipality_str = re.sub('\d|-- | --|   [ . ]|\n| -', '', municipality_str)
                     if municipality_str[0] == ' ':
                         municipality_str = municipality_str[1:]
-                        if municipality_str[-1] == ' ':
-                            municipality_str = municipality_str[:-1]
+                    if municipality_str[-1] == ' ':
+                        municipality_str = municipality_str[:-1]
 
                     if len(municipality_str.split(' ')) > 1 and \
                             (municipality_str.split(' ')[0] == "Κοινότητα" or municipality_str.split(' ')[0] == "Δήμος"):
@@ -133,6 +141,7 @@ def wiki_scraper():
                             munic_id = "--_" + municipality_str.replace(" ", "_") + "_-"
                             sub = sub_html.find('span', {"id": munic_id})
 
+                        # finds the element that the districts names are located
                         flag = sub is None
                         while not flag and sub.name != 'dl':
                             sub = sub.next_element
@@ -140,9 +149,20 @@ def wiki_scraper():
 
                         districts = []
                         if not flag:
+                            # gets the districts and cleans their text
                             for au in sub.find_all('dd'):
                                 if au.find('b') is not None:
-                                    districts.append(au.find('b').get_text())
+                                    district_str = au.find('b').get_text()
+
+                                    # clean str
+                                    district_str = re.sub('\d|\[|]', '', district_str)
+                                    if district_str[0] == ' ':
+                                        district_str = district_str[1:]
+                                    if municipality_str[-1] == ' ':
+                                        district_str = district_str[:-1]
+
+                                    districts.append(district_str)
+                                    print(district_str)
 
                         # insertion to the output
                         municipalities_districts[municipality_str] = pd.Series(districts)
@@ -159,5 +179,5 @@ def wiki_scraper():
     md = pd.DataFrame(municipalities_districts)
     md.to_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t', columns=md.columns, index=False)
     exit()
-    return rp, pm
+    return rp, pm, md
 
