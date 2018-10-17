@@ -15,9 +15,10 @@ objects = []
 try:
     rc = pd.read_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t')
     cm = pd.read_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t')
+    md = pd.read_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t')
 
 except FileNotFoundError:
-    rc, cm = wiki_scraper()
+    rc, cm, md = wiki_scraper()
 
 # reads the entities from the dataframes and constructs/stores the neseccary values
 # IDs will be Kapodistria_RRCCMM where RR is region's id, CC prefecture's id and MM municipality's id
