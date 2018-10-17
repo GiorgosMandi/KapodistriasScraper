@@ -17,6 +17,7 @@ def wiki_scraper():
 
     region_prefectures = {}
     prefectures_municipalities = {}
+    municipalities_districts = {}
 
     # gets the table from the html page
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -74,18 +75,17 @@ def wiki_scraper():
                     while not flag and sub.name != 'dl':
                         sub = sub.next_element
                         flag = sub is None
-
+                    districts = []
                     if not flag:
-                        au_list = []
                         for au in sub.find_all('dd'):
                             if au.find('b') is not None:
-                                au_list.append(au.find('b').get_text())
+                                districts.append(au.find('b').get_text())
 
-
+                    # insertion to the output
+                    municipalities_districts[municipality_str] = pd.Series(districts)
             prefectures_municipalities[c_key] = pd.Series(municipalities)
     region_prefectures[r_key] = pd.Series(r_prefectures)
 
-    exit()
     # for the rest of the regions
     for table in sub_tables[1:]:
         data = table.find_all('td')
@@ -138,22 +138,26 @@ def wiki_scraper():
                             sub = sub.next_element
                             flag = sub is None
 
+                        districts = []
                         if not flag:
-                            au_list = []
                             for au in sub.find_all('dd'):
                                 if au.find('b') is not None:
-                                    au_list.append(au.find('b').get_text())
+                                    districts.append(au.find('b').get_text())
 
+                        # insertion to the output
+                        municipalities_districts[municipality_str] = pd.Series(districts)
                 prefectures_municipalities[c_key] = pd.Series(municipalities)
         region_prefectures[r_key] = pd.Series(r_prefectures)
 
     # stores dictionaries into .csv
-    rc = pd.DataFrame(region_prefectures)
-    # rc.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rc.columns, index=False)
+    rp = pd.DataFrame(region_prefectures)
+    # rp.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rp.columns, index=False)
 
-    cm = pd.DataFrame(prefectures_municipalities)
-    # cm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=cm.columns, index=False)
+    pm = pd.DataFrame(prefectures_municipalities)
+    # pm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=pm.columns, index=False)
 
+    md = pd.DataFrame(municipalities_districts)
+    md.to_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t', columns=md.columns, index=False)
     exit()
-    return rc, cm
+    return rp, pm
 
