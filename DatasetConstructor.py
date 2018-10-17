@@ -1,11 +1,7 @@
 import pandas as pd
 from wiki_parser import wiki_scraper
 
-# dataset with the matches in yagoDateFacts
-yago_matched = pd.read_csv('datasets/yago/yago_matched.tsv', sep='\t')
-legistlations = ('<https://el.wikipedia.org/wiki/Σχέδιο_«Καποδίστριας»>',
-                 '<https://el.wikipedia.org/wiki/Πρόγραμμα_«Καλλικράτης»>')
-
+remained_units = pd.read_csv('datasets/Remained.csv', sep='\t')['Remained'].values
 subjects = []
 predicates = []
 objects = []
@@ -66,7 +62,7 @@ for index, c in enumerate(prefectures_labels):
 URIs = regions_URIs + prefectures_URIs + municipalities_URIs
 IDs = ['<Kapodistrias_' + ids + '>' for ids in regions_IDs + prefectures_IDs + municipalities_IDs]
 temporal_id = [ids[:-1] + '_1>' for ids in IDs]
-labels = ['\'' + label + '\'' for label in regions_labels + prefectures_labels + municipalities_lables]
+labels = [label for label in regions_labels + prefectures_labels + municipalities_lables]
 UpperLevels = regions_UpperLevel + prefectures_UpperLevel + municipalities_UpperLevel
 types = ['<Region>'] * len(regions_URIs) +     \
         ['<Prefecture>'] * len(prefectures_URIs) +   \
@@ -76,13 +72,15 @@ types = ['<Region>'] * len(regions_URIs) +     \
 # forms the columns of the csv
 size = len(labels)
 for i in range(size):
-    subjects += [URIs[i]] * 7
-    objects += [types[i], IDs[i], labels[i], UpperLevels[i], '\'1997-##-##\'^^xsd:date',
-                '\'2011-##-##\'^^xsd:date', legistlations[0]]
-    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'rdf:label',
-                   'monto:has_UpperLevel', '<wasCreatedOnDate>', '<wasDestroyedOnDate>',
-                   'monto:basedOn']
-
+    subjects += [URIs[i]] * 5
+    objects += [types[i], IDs[i], '\'' + labels[i] + '\'', UpperLevels[i], '\'1997-##-##\'^^xsd:date']
+    predicates += ['rdf:type', 'monto:hasKapodistria_ID', 'rdf:label', 'monto:has_UpperLevel',
+                   '<wasCreatedOnDate>']
+    # inserts destruction date if it is not contained in remained_units
+    if labels[i] not in remained_units:
+        subjects += [URIs[i]]
+        objects += ['\'2011-##-##\'^^xsd:date']
+        predicates += ['<wasDestroyedOnDate>']
 
 # csv Construction
 dataset = pd.DataFrame({'Subject': pd.Series(subjects),
