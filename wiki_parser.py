@@ -57,9 +57,35 @@ def wiki_scraper():
                         (municipality_str.split(' ')[0] == "Κοινότητα" or municipality_str.split(' ')[0] == "Δήμος"):
                     municipalities.append(municipality_str)
 
+                    # Gets the Regions
+                    # constructs the id of the element that contains the districts
+                    munic_id = "--_" + municipality_str.replace(" ", "_") + "_--"
+                    sub = sub_html.find('span', {"id": munic_id})
+                    if sub is None:
+                        # Many cases!
+                        munic_id = municipality_str.replace(" ", "_")
+                        sub = sub_html.find('span', {"id": munic_id})
+                    if sub is None:
+                        # Mεταξάδων case
+                        munic_id = "--_" + municipality_str.replace(" ", "_") + "_-"
+                        sub = sub_html.find('span', {"id": munic_id})
+
+                    flag = sub is None
+                    while not flag and sub.name != 'dl':
+                        sub = sub.next_element
+                        flag = sub is None
+
+                    if not flag:
+                        au_list = []
+                        for au in sub.find_all('dd'):
+                            if au.find('b') is not None:
+                                au_list.append(au.find('b').get_text())
+
+
             prefectures_municipalities[c_key] = pd.Series(municipalities)
     region_prefectures[r_key] = pd.Series(r_prefectures)
 
+    exit()
     # for the rest of the regions
     for table in sub_tables[1:]:
         data = table.find_all('td')
@@ -75,30 +101,59 @@ def wiki_scraper():
                 print("GET ", prefecture.get_text())
                 url = prefecture.find('a',  href=True)
                 munic_page = requests.get('https://el.wikipedia.org/'+url['href'])
-                sub_soup = BeautifulSoup(munic_page.content, 'html.parser')
-                sub_html = list(sub_soup.children)[2]
+                munic_soup = BeautifulSoup(munic_page.content, 'html.parser')
+                sub_html = list(munic_soup.children)[2]
                 municipalities_list = sub_html.find_all('ul')[1]
                 municipalities_li = municipalities_list.find_all('li')
                 municipalities = []
                 for municipality in municipalities_li:
                     municipality_str = municipality.get_text()
-                    municipality_str = re.sub('\d|-- | --|   [ . ]|\n', '', municipality_str)
+
+                    # cleans the text
+                    municipality_str = re.sub('\d|-- | --|   [ . ]|\n| -', '', municipality_str)
                     if municipality_str[0] == ' ':
                         municipality_str = municipality_str[1:]
+                        if municipality_str[-1] == ' ':
+                            municipality_str = municipality_str[:-1]
+
                     if len(municipality_str.split(' ')) > 1 and \
                             (municipality_str.split(' ')[0] == "Κοινότητα" or municipality_str.split(' ')[0] == "Δήμος"):
                         municipalities.append(municipality_str)
 
-                prefectures_municipalities[c_key] = pd.Series(municipalities)
+                        # Gets the Regions
+                        # constructs the id of the element that contains the districts
+                        munic_id = "--_" + municipality_str.replace(" ", "_") + "_--"
+                        sub = sub_html.find('span', {"id": munic_id})
+                        if sub is None:
+                            # Many cases!
+                            munic_id = municipality_str.replace(" ", "_")
+                            sub = sub_html.find('span', {"id": munic_id})
+                        if sub is None:
+                            # Mεταξάδων case
+                            munic_id = "--_" + municipality_str.replace(" ", "_") + "_-"
+                            sub = sub_html.find('span', {"id": munic_id})
 
+                        flag = sub is None
+                        while not flag and sub.name != 'dl':
+                            sub = sub.next_element
+                            flag = sub is None
+
+                        if not flag:
+                            au_list = []
+                            for au in sub.find_all('dd'):
+                                if au.find('b') is not None:
+                                    au_list.append(au.find('b').get_text())
+
+                prefectures_municipalities[c_key] = pd.Series(municipalities)
         region_prefectures[r_key] = pd.Series(r_prefectures)
 
     # stores dictionaries into .csv
     rc = pd.DataFrame(region_prefectures)
-    rc.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rc.columns, index=False)
+    # rc.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rc.columns, index=False)
 
     cm = pd.DataFrame(prefectures_municipalities)
-    cm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=cm.columns, index=False)
+    # cm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=cm.columns, index=False)
 
+    exit()
     return rc, cm
 
