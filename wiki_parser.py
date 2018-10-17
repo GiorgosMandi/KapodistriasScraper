@@ -39,7 +39,7 @@ def wiki_scraper():
             r_prefectures.append(c_key)
 
         else:
-            print('GET ', prefecture.get_text(), "\n")
+            print('GET ', prefecture.get_text())
             url = prefecture.find('a',  href=True)
             munic_page = requests.get('https://el.wikipedia.org/'+url['href'])
             sub_soup = BeautifulSoup(munic_page.content, 'html.parser')
