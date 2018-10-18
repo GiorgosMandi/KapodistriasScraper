@@ -171,10 +171,10 @@ def wiki_scraper():
 
     # stores dictionaries into .csv
     rp = pd.DataFrame(region_prefectures)
-    # rp.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rp.columns, index=False)
+    rp.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rp.columns, index=False)
 
     pm = pd.DataFrame(prefectures_municipalities)
-    # pm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=pm.columns, index=False)
+    pm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=pm.columns, index=False)
 
     md = pd.DataFrame(municipalities_districts)
     md.to_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t', columns=md.columns, index=False)
