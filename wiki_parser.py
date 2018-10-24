@@ -181,9 +181,9 @@ def french_au_parser():
     html = list(soup.children)[2]
     tables = html.find_all('table',  {"class": 'wikitable'})
 
+    # Gets the Regions that didn't change
     remained_table = tables[1]
     data = remained_table.find_all('td')[1:]
-
     remained_units = {}
     for d in data:
         region_name = d.get_text()
@@ -196,27 +196,28 @@ def french_au_parser():
             region_soup = BeautifulSoup(region_page.content, 'html.parser')
             region_html = list(region_soup.children)[2]
             department_table = region_html.find('ul', {'class': 'NavContent'})
+
+            # Checkes whether the region got departments
             if department_table is not None:
                 department_list = department_table.find_all('li')
                 remained_units[region_name] = pd.Series([d.get_text() for d in department_list])
             else:
                 remained_units[region_name] = pd.Series([])
 
+    # Gets that were affected
     merged_table = tables[0]
     data = merged_table.find_all('td')[4:]
 
     new_departments = {}
     former_departments = {}
     merged_mapping = {}
-
     new_region = ""
     former_regions = []
     flag_c = 0
-
     for index, d in enumerate(data):
-
         region_name = d.get_text()
 
+        # parses the table
         if len(region_name) == 1:
             # Empty Row
             flag_c = 0
@@ -270,7 +271,6 @@ def french_au_parser():
 
                 former_departments[region_name] = pd.Series([dep.get_text() for dep in department_list])
 
-
     # stores dictionaries into .csv
     nr = pd.DataFrame(new_departments)
     nr.to_csv("datasets/French_scheme/New_Regions.csv", sep='\t', columns=nr.columns, index=False)
@@ -284,7 +284,7 @@ def french_au_parser():
     ru = pd.DataFrame(remained_units)
     ru.to_csv("datasets/French_scheme/Remained.csv", sep='\t', columns=ru.columns, index=False)
 
-    return nr, fr, mm
+    return nr, fr, mm, ru
 
 
 
