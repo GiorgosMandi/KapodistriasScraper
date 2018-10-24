@@ -175,6 +175,9 @@ def kapodistrias_au_parser():
     return rp, pm, md
 
 
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 def french_au_parser():
     page = requests.get("https://en.wikipedia.org/wiki/Regions_of_France")
     soup = BeautifulSoup(page.content, 'html.parser')
@@ -186,9 +189,9 @@ def french_au_parser():
     data = remained_table.find_all('td')[1:]
     remained_units = {}
     for d in data:
-        region_name = d.get_text()
+        region_name = re.sub('\d|\(|\)|\n', '', d.get_text())
         if len(region_name) > 1:
-            print("\n\n", region_name)
+            print(region_name)
 
             # gets Region's departments
             region_url = d.find('a', href=True)
@@ -200,7 +203,8 @@ def french_au_parser():
             # Checkes whether the region got departments
             if department_table is not None:
                 department_list = department_table.find_all('li')
-                remained_units[region_name] = pd.Series([d.get_text() for d in department_list])
+                remained_units[region_name] = pd.Series([re.sub('\d|\(|\)|\n', '', d.get_text())
+                                                         for d in department_list])
             else:
                 remained_units[region_name] = pd.Series([])
 
@@ -215,10 +219,10 @@ def french_au_parser():
     former_regions = []
     flag_c = 0
     for index, d in enumerate(data):
-        region_name = d.get_text()
+        region_name = re.sub('\d|\(|\)|\n', '', d.get_text())
 
         # parses the table
-        if len(region_name) == 1:
+        if len(region_name) == 0:
             # Empty Row
             flag_c = 0
             # constructs a map that holds the information about who merged to produce who
@@ -247,7 +251,7 @@ def french_au_parser():
                 # cleans departments' names
                 temp_list = []
                 for dep in department_list:
-                    dep_str = re.sub('\d|\(|\)', '', dep.get_text())
+                    dep_str = re.sub('\d|\(|\)|\n', '', dep.get_text())
                     if dep_str[-1] == ' ':
                         dep_str = dep_str[:-1]
                     print(dep_str)
@@ -269,7 +273,8 @@ def french_au_parser():
                 for dep in department_list:
                     print(dep.get_text())
 
-                former_departments[region_name] = pd.Series([dep.get_text() for dep in department_list])
+                former_departments[region_name] = pd.Series([re.sub('\d|\(|\)|\n', '', dep.get_text())
+                                                             for dep in department_list])
 
     # stores dictionaries into .csv
     nr = pd.DataFrame(new_departments)
