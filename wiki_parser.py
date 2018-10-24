@@ -179,8 +179,31 @@ def french_au_parser():
     page = requests.get("https://en.wikipedia.org/wiki/Regions_of_France")
     soup = BeautifulSoup(page.content, 'html.parser')
     html = list(soup.children)[2]
-    main_table = html.find('table',  {"class": 'wikitable'})
-    data = main_table.find_all('td')[4:]
+    tables = html.find_all('table',  {"class": 'wikitable'})
+
+    remained_table = tables[1]
+    data = remained_table.find_all('td')[1:]
+
+    remained_units = {}
+    for d in data:
+        region_name = d.get_text()
+        if len(region_name) > 1:
+            print("\n\n", region_name)
+
+            # gets Region's departments
+            region_url = d.find('a', href=True)
+            region_page = requests.get('https://en.wikipedia.org/' + region_url['href'])
+            region_soup = BeautifulSoup(region_page.content, 'html.parser')
+            region_html = list(region_soup.children)[2]
+            department_table = region_html.find('ul', {'class': 'NavContent'})
+            if department_table is not None:
+                department_list = department_table.find_all('li')
+                remained_units[region_name] = pd.Series([d.get_text() for d in department_list])
+            else:
+                remained_units[region_name] = pd.Series([])
+
+    merged_table = tables[0]
+    data = merged_table.find_all('td')[4:]
 
     new_departments = {}
     former_departments = {}
@@ -188,10 +211,8 @@ def french_au_parser():
 
     new_region = ""
     former_regions = []
-
-
-
     flag_c = 0
+
     for index, d in enumerate(data):
 
         region_name = d.get_text()
@@ -200,11 +221,10 @@ def french_au_parser():
             # Empty Row
             flag_c = 0
             # constructs a map that holds the information about who merged to produce who
-            if len(former_regions) == 0:
-                merged_mapping[new_region] = former_regions
+            if len(former_regions) != 0:
+                merged_mapping[new_region] = pd.Series(former_regions)
                 new_region = ""
                 former_regions = []
-            print("---------------------------------------")
         else:
             flag_c += 1
             if flag_c == 2:
@@ -224,13 +244,14 @@ def french_au_parser():
                 department_list = region_html.find('ul', {'class': 'NavContent'}).find_all('li')
 
                 # cleans departments' names
-                new_departments[region_name] = []
+                temp_list = []
                 for dep in department_list:
                     dep_str = re.sub('\d|\(|\)', '', dep.get_text())
                     if dep_str[-1] == ' ':
                         dep_str = dep_str[:-1]
                     print(dep_str)
-                    new_departments[region_name].append(dep_str)
+                    temp_list.append(dep_str)
+                new_departments[region_name] = pd.Series(temp_list)
 
             else:
                 # Former Regions
@@ -247,7 +268,23 @@ def french_au_parser():
                 for dep in department_list:
                     print(dep.get_text())
 
-                former_departments[region_name] = [dep.get_text() for dep in department_list]
+                former_departments[region_name] = pd.Series([dep.get_text() for dep in department_list])
+
+
+    # stores dictionaries into .csv
+    nr = pd.DataFrame(new_departments)
+    nr.to_csv("datasets/French_scheme/New_Regions.csv", sep='\t', columns=nr.columns, index=False)
+
+    fr = pd.DataFrame(former_departments)
+    fr.to_csv("datasets/French_scheme/Former_Regions.csv", sep='\t', columns=fr.columns, index=False)
+
+    mm = pd.DataFrame(merged_mapping)
+    mm.to_csv("datasets/French_scheme/Merged_Map.csv", sep='\t', columns=mm.columns, index=False)
+
+    ru = pd.DataFrame(remained_units)
+    ru.to_csv("datasets/French_scheme/Remained.csv", sep='\t', columns=ru.columns, index=False)
+
+    return nr, fr, mm
 
 
 
