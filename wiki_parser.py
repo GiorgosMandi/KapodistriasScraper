@@ -5,16 +5,9 @@ import re
 from bs4 import BeautifulSoup
 
 
-def wiki_scraper():
-    try:
-        with open("datasets/Kapodistrias_scheme/Wiki_Object", 'rb') as wo:
-            page = pickle.load(wo)
-    except FileNotFoundError:
-        page = requests.get("https://el.wikipedia.org/wiki/%CE%94%CE%B9%CE%BF%CE%B9%CE%BA%CE%B7%CF%84%CE%B9%CE%BA%CE%AE_%CE%B4%CE%B9%CE%B1%CE%AF%CF%81%CE%B5%CF%83%CE%B7_%CF%84%CE%B7%CF%82_%CE%95%CE%BB%CE%BB%CE%AC%CE%B4%CE%B1%CF%82_1997")
-        if page.status_code == 200:
-            with open("datasets/Kapodistrias_scheme/Wiki_Object", 'wb') as wo:
-                pickle.dump(page, wo)
+def kapodistrias_au_parser():
 
+    page = requests.get("https://el.wikipedia.org/wiki/%CE%94%CE%B9%CE%BF%CE%B9%CE%BA%CE%B7%CF%84%CE%B9%CE%BA%CE%AE_%CE%B4%CE%B9%CE%B1%CE%AF%CF%81%CE%B5%CF%83%CE%B7_%CF%84%CE%B7%CF%82_%CE%95%CE%BB%CE%BB%CE%AC%CE%B4%CE%B1%CF%82_1997")
     region_prefectures = {}
     prefectures_municipalities = {}
     municipalities_districts = {}
@@ -133,7 +126,7 @@ def wiki_scraper():
                         munic_id = "--_" + municipality_str.replace(" ", "_") + "_--"
                         sub = sub_html.find('span', {"id": munic_id})
                         if sub is None:
-                            # Many cases!
+                            # Most of the cases!
                             munic_id = municipality_str.replace(" ", "_")
                             sub = sub_html.find('span', {"id": munic_id})
                         if sub is None:
@@ -171,13 +164,90 @@ def wiki_scraper():
 
     # stores dictionaries into .csv
     rp = pd.DataFrame(region_prefectures)
-    rp.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rp.columns, index=False)
-
+    rp.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rp.columns,
+              index=False)
     pm = pd.DataFrame(prefectures_municipalities)
-    pm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=pm.columns, index=False)
-
+    pm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=pm.columns,
+              index=False)
     md = pd.DataFrame(municipalities_districts)
-    md.to_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t', columns=md.columns, index=False)
-    exit()
+    md.to_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t', columns=md.columns,
+              index=False)
     return rp, pm, md
+
+
+def french_au_parser():
+    page = requests.get("https://en.wikipedia.org/wiki/Regions_of_France")
+    soup = BeautifulSoup(page.content, 'html.parser')
+    html = list(soup.children)[2]
+    main_table = html.find('table',  {"class": 'wikitable'})
+    data = main_table.find_all('td')[4:]
+
+    new_departments = {}
+    former_departments = {}
+    merged_mapping = {}
+
+    new_region = ""
+    former_regions = []
+
+
+
+    flag_c = 0
+    for index, d in enumerate(data):
+
+        region_name = d.get_text()
+
+        if len(region_name) == 1:
+            # Empty Row
+            flag_c = 0
+            # constructs a map that holds the information about who merged to produce who
+            if len(former_regions) == 0:
+                merged_mapping[new_region] = former_regions
+                new_region = ""
+                former_regions = []
+            print("---------------------------------------")
+        else:
+            flag_c += 1
+            if flag_c == 2:
+                # Interim region's name -- Not useful
+                continue
+            elif flag_c == 3:
+
+                # New Regions
+                print("\n------->", region_name)
+                new_region = region_name
+
+                # gets Region's departments
+                region_url = d.find('a', href=True)
+                region_page = requests.get('https://en.wikipedia.org/' + region_url['href'])
+                region_soup = BeautifulSoup(region_page.content, 'html.parser')
+                region_html = list(region_soup.children)[2]
+                department_list = region_html.find('ul', {'class': 'NavContent'}).find_all('li')
+
+                # cleans departments' names
+                new_departments[region_name] = []
+                for dep in department_list:
+                    dep_str = re.sub('\d|\(|\)', '', dep.get_text())
+                    if dep_str[-1] == ' ':
+                        dep_str = dep_str[:-1]
+                    print(dep_str)
+                    new_departments[region_name].append(dep_str)
+
+            else:
+                # Former Regions
+                print("\n-->", region_name)
+                former_regions.append(region_name)
+
+                # gets Region's departments
+                region_url = d.find('a', href=True)
+                region_page = requests.get('https://en.wikipedia.org/' + region_url['href'])
+                region_soup = BeautifulSoup(region_page.content, 'html.parser')
+                region_html = list(region_soup.children)[2]
+                department_list = region_html.find('ul', {'class': 'NavContent'}).find_all('li')
+
+                for dep in department_list:
+                    print(dep.get_text())
+
+                former_departments[region_name] = [dep.get_text() for dep in department_list]
+
+
 
