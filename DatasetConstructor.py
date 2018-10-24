@@ -1,21 +1,26 @@
 import pandas as pd
 from wiki_parser import wiki_scraper
 
+import argparse
+
+parser = argparse.ArgumentParser(description='Choose country')
+parser.add_argument('country', type=str, help='G for Greece, F for France', nargs='?', default='G')
+args = parser.parse_args()
+if args.country != 'F':
+    args.country = 'G'
+
+
 remained_units = pd.read_csv('datasets/Remained.csv', sep='\t')['Remained'].values
 subjects = []
 predicates = []
 objects = []
-# insert legislations data in the output csv
-# subjects = [legistlations[0]] * 2 + [legistlations[1]] * 2
-# predicates = ['rdf:type', 'rdf:label', 'rdf:type', 'myonto:has_label']
-# objects = ['<LegislativeModification>', '\'Σχέδιο_«Καποδίστριας»\'',
-#           '<LegislativeModification>', '\'Πρόγραμμα_«Καλλικράτης»\'']
 
 # If the files exist they are loaded, else they are generated through wiki_scraper
 try:
-    rc = pd.read_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t')
-    cm = pd.read_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t')
-    md = pd.read_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t')
+    if args.country == 'G':
+        rc = pd.read_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t')
+        cm = pd.read_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t')
+        md = pd.read_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t')
 
 except FileNotFoundError:
     rc, cm, md = wiki_scraper()
