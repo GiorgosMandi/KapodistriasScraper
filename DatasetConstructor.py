@@ -138,7 +138,7 @@ def french_dataset():
     for index, r in enumerate(fr_labels):
         fr_departments = list(fr[r].dropna())
         fr_departments_labels += fr_departments
-        fr_departments_IDs += [fr_IDs[index][:-3] + "%02d" % i for i in range(1, len(fr_departments) + 1)]
+        fr_departments_IDs += [fr_IDs[index][:3] + "%02d" % i for i in range(1, len(fr_departments) + 1)]
         fr_departments_UpperLevel += [fr_URIs[index]] * len(fr_departments)
         fr_departments_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                                 for label in fr_departments]
@@ -158,7 +158,7 @@ def french_dataset():
     for index, r in enumerate(nr_labels):
         nr_departments = list(nr[r].dropna())
         nr_departments_labels += nr_departments
-        nr_departments_IDs += [nr_IDs[index][:-3] + "%02d" % i for i in range(1, len(nr_departments) + 1)]
+        nr_departments_IDs += [nr_IDs[index][:3] + "%02d" % i for i in range(1, len(nr_departments) + 1)]
         nr_departments_UpperLevel += [nr_URIs[index]] * len(nr_departments)
         nr_departments_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                                 for label in nr_departments]
@@ -178,7 +178,7 @@ def french_dataset():
     for index, r in enumerate(ru_labels):
         ru_departments = list(ru[r].dropna())
         ru_departments_labels += ru_departments
-        ru_departments_IDs += [ru_IDs[index][:-3] + "%02d" % i for i in range(1, len(ru_departments) + 1)]
+        ru_departments_IDs += [ru_IDs[index][:3] + "%02d" % i for i in range(1, len(ru_departments) + 1)]
         ru_departments_UpperLevel += [ru_URIs[index]] * len(ru_departments)
         ru_departments_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                                 for label in ru_departments]
@@ -188,7 +188,7 @@ def french_dataset():
 
 
     URIs = fr_URIs + nr_URIs + ru_URIs + fr_departments_URIs + nr_departments_URIs + ru_departments_URIs
-    IDs = ['<Frech_AU_' + ids + '>' for ids in fr_IDs + nr_IDs + ru_IDs  + fr_departments_IDs + nr_departments_IDs \
+    IDs = ['<French_AU_' + ids + '>' for ids in fr_IDs + nr_IDs + ru_IDs  + fr_departments_IDs + nr_departments_IDs \
            + ru_departments_IDs]
 
     labels = [label for label in fr_labels + nr_labels + ru_labels + fr_departments_labels + nr_departments_labels + \
@@ -227,7 +227,7 @@ def french_dataset():
         elif (i >= former_size) and (i < former_size + new_size):
             subjects += [URIs[i]]
             predicates += ['<wasCreatedOnDate>']
-            objects += ['\'2016-##-##\'^^xsd:date']
+            objects += ['\'2016-01-01\'^^xsd:date']
 
         else:
             subjects += [URIs[i]]
@@ -252,7 +252,7 @@ def french_dataset():
         elif (i >= fr_dep_size + start) and (i < nr_dep_size + fr_dep_size + start) and labels.count(labels[i]) == 1:
             subjects += [URIs[i]]
             predicates += ['<wasCreatedOnDate>']
-            objects += ['\'2016-##-##\'^^xsd:date']
+            objects += ['\'2016-01-01\'^^xsd:date']
 
         else:
             subjects += [URIs[i]]
