@@ -289,7 +289,7 @@ def french_au_parser():
     ru = pd.DataFrame(remained_units)
     ru.to_csv("datasets/French_scheme/Remained.csv", sep='\t', columns=ru.columns, index=False)
 
-    return nr, fr, mm, ru
+    return nr, fr, ru
 
 
 

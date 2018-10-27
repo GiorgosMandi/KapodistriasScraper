@@ -116,20 +116,19 @@ def french_dataset():
     try:
         nr = pd.read_csv("datasets/French_scheme/New_Regions.csv", sep='\t')
         fr = pd.read_csv("datasets/French_scheme/Former_Regions.csv", sep='\t')
-        mm = pd.read_csv("datasets/French_scheme/Merged_Map.csv", sep='\t')
         ru = pd.read_csv("datasets/French_scheme/Remained.csv", sep='\t')
     except FileNotFoundError:
-        nr, fr, mm, ru = french_au_parser()
+        nr, fr, ru = french_au_parser()
 
 
-    # Constructing data for the future regions
+    # Forming data for the future regions
     fr_labels = list(fr.columns)
     fr_IDs = ['<French_AU_0' + "%02d" % i + '00>'  for i in range(1, len(fr_labels) + 1)]
     fr_UpperLevels = ['<France>'] * len(fr_labels)
     fr_types = ['Region'] * len(fr_labels)
     fr_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                     for label in fr_labels]
-
+    # Forming the data for the former Departments
     for index, r in enumerate(list(fr.columns)):
         fr_departments = list(fr[r].dropna())
         fr_labels += fr_departments
@@ -140,14 +139,14 @@ def french_dataset():
                                 for label in fr_departments]
 
 
-    # Constructing the data for the new Regions
+    # Forming the data for the new Regions
     nr_labels = list(nr.columns)
     nr_IDs = ['<French_AU_1' + "%02d" % i + '00>' for i in range(1, len(nr_labels) + 1)]
     nr_UpperLevels = ['<France>'] * len(nr_labels)
     nr_types = ['Region'] * len(nr_labels)
     nr_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                for label in nr_labels]
-
+    # Forming the data for the new Departments
     for index, r in enumerate(list(nr.columns)):
         nr_departments = list(nr[r].dropna())
         nr_labels += nr_departments
@@ -158,14 +157,14 @@ def french_dataset():
                     for label in nr_departments]
 
 
-    # Construvting the data of the regions that remained the same
+    # Forming the data of the regions that remained the same
     ru_labels = list(ru.columns)
     ru_IDs = ['<French_AU_2' + "%02d" % i + '00>' for i in range(1, len(ru_labels) + 1)]
     ru_UpperLevels = ['<France>'] * len(ru_labels)
     ru_types = ['Region'] * len(ru_labels)
     ru_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                for label in ru_labels]
-
+    # Forming the data for the Departments of regions that didn't change
     for index, r in enumerate(list(ru.columns)):
         ru_departments = list(ru[r].dropna())
         ru_labels += ru_departments
