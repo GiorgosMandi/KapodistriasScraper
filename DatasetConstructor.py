@@ -265,12 +265,20 @@ def french_dataset():
 
 
 
-        # csv Construction
-        dataset = pd.DataFrame({'Subject': pd.Series(subjects),
-                                'Predicate': pd.Series(predicates),
-                                'Object': pd.Series(objects)
-                                })
-        dataset.to_csv("datasets/French_scheme/French_AU.csv", sep='\t', index=False)
+    # csv Construction
+    dataset = pd.DataFrame({'Subject': pd.Series(subjects),
+                            'Predicate': pd.Series(predicates),
+                            'Object': pd.Series(objects)
+                             })
+    dataset.to_csv("datasets/French_scheme/French_AU.csv", sep='\t', index=False)
+
+
+    # reading the file with the geometries
+    from os import listdir
+    from os.path import isfile, join
+    onlyfiles = [f.split('.')[0] for f in listdir('datasets/French_scheme/French_Polygons')
+                 if isfile(join('datasets/French_scheme/French_Polygons', f))]
+
 
 
 
