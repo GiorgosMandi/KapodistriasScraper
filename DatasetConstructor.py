@@ -121,142 +121,107 @@ def french_dataset():
     except FileNotFoundError:
         nr, fr, mm, ru = french_au_parser()
 
+
     # Constructing data for the future regions
     fr_labels = list(fr.columns)
-    fr_IDs = ['0' + "%02d" % i + '00' for i in range(1, len(fr_labels) + 1)]
-    fr_UpperLevel = ['<France>'] * len(fr_labels)
+    fr_IDs = ['<French_AU_0' + "%02d" % i + '00>'  for i in range(1, len(fr_labels) + 1)]
+    fr_UpperLevels = ['<France>'] * len(fr_labels)
+    fr_types = ['Region'] * len(fr_labels)
     fr_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                     for label in fr_labels]
 
-    fr_departments_labels = []
-    fr_departments_IDs = []
-    fr_departments_URIs = []
-    fr_departments_UpperLevel = []
-    for index, r in enumerate(fr_labels):
+    for index, r in enumerate(list(fr.columns)):
         fr_departments = list(fr[r].dropna())
-        fr_departments_labels += fr_departments
-        fr_departments_IDs += [fr_IDs[index][:3] + "%02d" % i for i in range(1, len(fr_departments) + 1)]
-        fr_departments_UpperLevel += [fr_URIs[index]] * len(fr_departments)
-        fr_departments_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+        fr_labels += fr_departments
+        fr_IDs += [fr_IDs[index][:-3] + "%02d>" % i for i in range(1, len(fr_departments) + 1)]
+        fr_UpperLevels += [fr_URIs[index]] * len(fr_departments)
+        fr_types += ['Department'] * len(fr_departments)
+        fr_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                                 for label in fr_departments]
 
 
     # Constructing the data for the new Regions
     nr_labels = list(nr.columns)
-    nr_IDs = ['1' + "%02d" % i + '00' for i in range(1, len(nr_labels) + 1)]
-    nr_UpperLevel = ['<France>'] * len(nr_labels)
+    nr_IDs = ['<French_AU_1' + "%02d" % i + '00>' for i in range(1, len(nr_labels) + 1)]
+    nr_UpperLevels = ['<France>'] * len(nr_labels)
+    nr_types = ['Region'] * len(nr_labels)
     nr_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                for label in nr_labels]
 
-    nr_departments_labels = []
-    nr_departments_IDs = []
-    nr_departments_URIs = []
-    nr_departments_UpperLevel = []
-    for index, r in enumerate(nr_labels):
+    for index, r in enumerate(list(nr.columns)):
         nr_departments = list(nr[r].dropna())
-        nr_departments_labels += nr_departments
-        nr_departments_IDs += [nr_IDs[index][:3] + "%02d" % i for i in range(1, len(nr_departments) + 1)]
-        nr_departments_UpperLevel += [nr_URIs[index]] * len(nr_departments)
-        nr_departments_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
-                                for label in nr_departments]
+        nr_labels += nr_departments
+        nr_IDs += [nr_IDs[index][:-3] + "%02d>" % i for i in range(1, len(nr_departments) + 1)]
+        nr_UpperLevels += [nr_URIs[index]] * len(nr_departments)
+        nr_types += ['Department'] * len(nr_departments)
+        nr_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+                    for label in nr_departments]
 
 
     # Construvting the data of the regions that remained the same
     ru_labels = list(ru.columns)
-    ru_IDs = ['2' + "%02d" % i + '00' for i in range(1, len(ru_labels) + 1)]
-    ru_UpperLevel = ['<France>'] * len(ru_labels)
+    ru_IDs = ['<French_AU_2' + "%02d" % i + '00>' for i in range(1, len(ru_labels) + 1)]
+    ru_UpperLevels = ['<France>'] * len(ru_labels)
+    ru_types = ['Region'] * len(ru_labels)
     ru_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                for label in ru_labels]
 
-    ru_departments_labels = []
-    ru_departments_IDs = []
-    ru_departments_URIs = []
-    ru_departments_UpperLevel = []
-    for index, r in enumerate(ru_labels):
+    for index, r in enumerate(list(ru.columns)):
         ru_departments = list(ru[r].dropna())
-        ru_departments_labels += ru_departments
-        ru_departments_IDs += [ru_IDs[index][:3] + "%02d" % i for i in range(1, len(ru_departments) + 1)]
-        ru_departments_UpperLevel += [ru_URIs[index]] * len(ru_departments)
-        ru_departments_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+        ru_labels += ru_departments
+        ru_IDs += [ru_IDs[index][:-3] + "%02d>" % i for i in range(1, len(ru_departments) + 1)]
+        ru_UpperLevels += [ru_URIs[index]] * len(ru_departments)
+        ru_types += ['Department'] * len(ru_departments)
+        ru_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
                                 for label in ru_departments]
 
+    # former regions dataset
+    fr_subjects = []
+    fr_predicates = []
+    fr_objects = []
+    for i in range(len(fr_URIs)):
+        fr_subjects += [fr_URIs[i]] * 6
+        fr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
+                       '<wasCreatedOnDate>', '<wasDestroyedOnDate>']
+        fr_objects += [fr_types[i], fr_IDs[i], '\'' + fr_labels[i] + '\'', fr_UpperLevels[i],
+                    '\'1981-##-##\'^^xsd:date', '\'2016-01-01\'^^xsd:date']
 
-    # merging of the data
-    URIs = fr_URIs + nr_URIs + ru_URIs + fr_departments_URIs + nr_departments_URIs + ru_departments_URIs
-    IDs = ['<French_AU_' + ids + '>' for ids in fr_IDs + nr_IDs + ru_IDs  + fr_departments_IDs + nr_departments_IDs \
-           + ru_departments_IDs]
+    # new regions dataset
+    nr_subjects = []
+    nr_predicates = []
+    nr_objects = []
+    for i in range(len(nr_URIs)):
+        nr_subjects += [nr_URIs[i]] * 5
+        nr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
+                       '<wasCreatedOnDate>', ]
+        nr_objects += [nr_types[i], nr_IDs[i], '\'' + nr_labels[i] + '\'', nr_UpperLevels[i],
+                    '\'2016-01-01\'^^xsd:date']
 
-    labels = [label for label in fr_labels + nr_labels + ru_labels + fr_departments_labels + nr_departments_labels + \
-              ru_departments_labels]
+    # add remained regions to both datasets
+    for i in range(len(ru_URIs)):
+        fr_subjects += [ru_URIs[i]] * 5
+        nr_subjects += [ru_URIs[i]] * 5
 
-    UpperLevels = fr_UpperLevel + nr_UpperLevel + ru_UpperLevel + fr_departments_UpperLevel + nr_departments_UpperLevel \
-                  + ru_departments_UpperLevel
+        fr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
+                       '<wasCreatedOnDate>']
+        nr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
+                       '<wasCreatedOnDate>']
+        fr_objects += [ru_types[i], ru_IDs[i], '\'' + ru_labels[i] + '\'', ru_UpperLevels[i],
+                    '\'1981-##-##\'^^xsd:date']
+        nr_objects += [ru_types[i], ru_IDs[i], '\'' + ru_labels[i] + '\'', ru_UpperLevels[i],
+                    '\'1981-##-##\'^^xsd:date']
 
-    types = ['<Region>'] * len(fr_URIs + nr_URIs + ru_URIs) +     \
-            ['<Department>'] * len(fr_departments_URIs + nr_departments_URIs + ru_departments_URIs)
-
-    size = len(labels)
-    former_size = len(fr_URIs)
-    new_size = len(nr_URIs)
-    remained_size = len(ru_URIs)
-
-    subjects = []
-    predicates = []
-    objects = []
-    # add Regions to the dataframe
-    for i in range(former_size + new_size + remained_size):
-
-        subjects += [URIs[i]] * 4
-        predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel']
-        objects += [types[i], IDs[i], '\'' + labels[i] + '\'', UpperLevels[i]]
-
-        if i < former_size:
-            subjects += [URIs[i]] * 2
-            predicates += ['<wasCreatedOnDate>', '<wasDestroyedOnDate>']
-            objects += ['\'1981-##-##\'^^xsd:date', '\'2016-01-01\'^^xsd:date']
-
-        elif (i >= former_size) and (i < former_size + new_size):
-            subjects += [URIs[i]]
-            predicates += ['<wasCreatedOnDate>']
-            objects += ['\'2016-01-01\'^^xsd:date']
-
-        else:
-            subjects += [URIs[i]]
-            predicates += ['<wasCreatedOnDate>']
-            objects += ['\'1981-##-##\'^^xsd:date']
-
-
-    # add Departments to the dataframe
-    fr_dep_size = len(fr_departments_URIs)
-    nr_dep_size = len(nr_departments_URIs)
-    start = former_size + new_size + remained_size
-    for i in range(start, size):
-        subjects += [URIs[i]] * 4
-        predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel']
-        objects += [types[i], IDs[i], '\'' + labels[i] + '\'', UpperLevels[i]]
-
-        if i < fr_dep_size + start and labels.count(labels[i]) == 1:
-            subjects += [URIs[i]] * 2
-            predicates += ['<wasCreatedOnDate>', '<wasDestroyedOnDate>']
-            objects += ['\'1981-##-##\'^^xsd:date', '\'2016-01-01\'^^xsd:date']
-
-        elif (i >= fr_dep_size + start) and (i < nr_dep_size + fr_dep_size + start) and labels.count(labels[i]) == 1:
-            subjects += [URIs[i]]
-            predicates += ['<wasCreatedOnDate>']
-            objects += ['\'2016-01-01\'^^xsd:date']
-
-        else:
-            subjects += [URIs[i]]
-            predicates += ['<wasCreatedOnDate>']
-            objects += ['\'1981-##-##\'^^xsd:date']
-
-
-    # csv Construction
-    dataset = pd.DataFrame({'Subject': pd.Series(subjects),
-                            'Predicate': pd.Series(predicates),
-                            'Object': pd.Series(objects)
-                             })
-    dataset.to_csv("datasets/French_scheme/French_AU.csv", sep='\t', index=False)
+    # Construction of the DataFrames and csv
+    # Former Regions
+    fr_dataset = pd.DataFrame({'Subject': pd.Series(fr_subjects),
+                            'Predicate': pd.Series(fr_predicates),
+                            'Object': pd.Series(fr_objects)})
+    fr_dataset.to_csv("datasets/French_scheme/French_FAU.csv", sep='\t', index=False)
+    # New Regions
+    nr_dataset = pd.DataFrame({'Subject': pd.Series(nr_subjects),
+                            'Predicate': pd.Series(nr_predicates),
+                            'Object': pd.Series(nr_objects)})
+    nr_dataset.to_csv("datasets/French_scheme/French_NAU.csv", sep='\t', index=False)
 
 
     # reading the file with the geometries
