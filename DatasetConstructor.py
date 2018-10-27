@@ -121,10 +121,7 @@ def french_dataset():
     except FileNotFoundError:
         nr, fr, mm, ru = french_au_parser()
 
-
-
-
-
+    # Constructing data for the future regions
     fr_labels = list(fr.columns)
     fr_IDs = ['0' + "%02d" % i + '00' for i in range(1, len(fr_labels) + 1)]
     fr_UpperLevel = ['<France>'] * len(fr_labels)
@@ -144,7 +141,7 @@ def french_dataset():
                                 for label in fr_departments]
 
 
-
+    # Constructing the data for the new Regions
     nr_labels = list(nr.columns)
     nr_IDs = ['1' + "%02d" % i + '00' for i in range(1, len(nr_labels) + 1)]
     nr_UpperLevel = ['<France>'] * len(nr_labels)
@@ -164,7 +161,7 @@ def french_dataset():
                                 for label in nr_departments]
 
 
-
+    # Construvting the data of the regions that remained the same
     ru_labels = list(ru.columns)
     ru_IDs = ['2' + "%02d" % i + '00' for i in range(1, len(ru_labels) + 1)]
     ru_UpperLevel = ['<France>'] * len(ru_labels)
@@ -184,9 +181,7 @@ def french_dataset():
                                 for label in ru_departments]
 
 
-
-
-
+    # merging of the data
     URIs = fr_URIs + nr_URIs + ru_URIs + fr_departments_URIs + nr_departments_URIs + ru_departments_URIs
     IDs = ['<French_AU_' + ids + '>' for ids in fr_IDs + nr_IDs + ru_IDs  + fr_departments_IDs + nr_departments_IDs \
            + ru_departments_IDs]
@@ -200,14 +195,10 @@ def french_dataset():
     types = ['<Region>'] * len(fr_URIs + nr_URIs + ru_URIs) +     \
             ['<Department>'] * len(fr_departments_URIs + nr_departments_URIs + ru_departments_URIs)
 
-    print(len(URIs), len(IDs), len(labels), len(UpperLevels), len(types))
-
-
     size = len(labels)
     former_size = len(fr_URIs)
     new_size = len(nr_URIs)
     remained_size = len(ru_URIs)
-
 
     subjects = []
     predicates = []
@@ -234,6 +225,7 @@ def french_dataset():
             predicates += ['<wasCreatedOnDate>']
             objects += ['\'1981-##-##\'^^xsd:date']
 
+
     # add Departments to the dataframe
     fr_dep_size = len(fr_departments_URIs)
     nr_dep_size = len(nr_departments_URIs)
@@ -248,7 +240,6 @@ def french_dataset():
             predicates += ['<wasCreatedOnDate>', '<wasDestroyedOnDate>']
             objects += ['\'1981-##-##\'^^xsd:date', '\'2016-01-01\'^^xsd:date']
 
-
         elif (i >= fr_dep_size + start) and (i < nr_dep_size + fr_dep_size + start) and labels.count(labels[i]) == 1:
             subjects += [URIs[i]]
             predicates += ['<wasCreatedOnDate>']
@@ -258,11 +249,6 @@ def french_dataset():
             subjects += [URIs[i]]
             predicates += ['<wasCreatedOnDate>']
             objects += ['\'1981-##-##\'^^xsd:date']
-
-
-
-
-
 
 
     # csv Construction
@@ -282,9 +268,7 @@ def french_dataset():
 
 
 
-
-
-
+# main
 parser = argparse.ArgumentParser(description='Choose country')
 parser.add_argument('country', type=str, help='G for Greece, F for France', nargs='?', default='F')
 args = parser.parse_args()
