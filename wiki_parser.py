@@ -5,7 +5,7 @@ import re
 from bs4 import BeautifulSoup
 
 
-def kapodistrias_au_parser():
+def kapodistrias_au_parser(path='datasets/Kapodistrias_scheme/'):
 
     page = requests.get("https://el.wikipedia.org/wiki/%CE%94%CE%B9%CE%BF%CE%B9%CE%BA%CE%B7%CF%84%CE%B9%CE%BA%CE%AE_%CE%B4%CE%B9%CE%B1%CE%AF%CF%81%CE%B5%CF%83%CE%B7_%CF%84%CE%B7%CF%82_%CE%95%CE%BB%CE%BB%CE%AC%CE%B4%CE%B1%CF%82_1997")
     region_prefectures = {}
@@ -164,13 +164,13 @@ def kapodistrias_au_parser():
 
     # stores dictionaries into .csv
     rp = pd.DataFrame(region_prefectures)
-    rp.to_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t', columns=rp.columns,
+    rp.to_csv(path + "Regions_Prefectures.csv", sep='\t', columns=rp.columns,
               index=False)
     pm = pd.DataFrame(prefectures_municipalities)
-    pm.to_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t', columns=pm.columns,
+    pm.to_csv(path + "Prefectures_Municipalities.csv", sep='\t', columns=pm.columns,
               index=False)
     md = pd.DataFrame(municipalities_districts)
-    md.to_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t', columns=md.columns,
+    md.to_csv(path + "Municipalities_Districts.csv", sep='\t', columns=md.columns,
               index=False)
     return rp, pm, md
 
@@ -178,7 +178,7 @@ def kapodistrias_au_parser():
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def french_au_parser():
+def french_au_parser(path ='datasets/French_scheme/'):
     page = requests.get("https://en.wikipedia.org/wiki/Regions_of_France")
     soup = BeautifulSoup(page.content, 'html.parser')
     html = list(soup.children)[2]
@@ -278,18 +278,15 @@ def french_au_parser():
 
     # stores dictionaries into .csv
     nr = pd.DataFrame(new_departments)
-    nr.to_csv("datasets/French_scheme/New_Regions.csv", sep='\t', columns=nr.columns, index=False)
+    nr.to_csv(path + "New_Regions.csv", sep='\t', columns=nr.columns, index=False)
 
     fr = pd.DataFrame(former_departments)
-    fr.to_csv("datasets/French_scheme/Former_Regions.csv", sep='\t', columns=fr.columns, index=False)
+    fr.to_csv(path + "Former_Regions.csv", sep='\t', columns=fr.columns, index=False)
 
     mm = pd.DataFrame(merged_mapping)
-    mm.to_csv("datasets/French_scheme/Merged_Map.csv", sep='\t', columns=mm.columns, index=False)
+    mm.to_csv(path + "Merged_Map.csv", sep='\t', columns=mm.columns, index=False)
 
     ru = pd.DataFrame(remained_units)
-    ru.to_csv("datasets/French_scheme/Remained.csv", sep='\t', columns=ru.columns, index=False)
+    ru.to_csv(path + "Remained.csv", sep='\t', columns=ru.columns, index=False)
 
     return nr, fr, ru
-
-
-

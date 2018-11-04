@@ -3,8 +3,8 @@ from wiki_parser import kapodistrias_au_parser
 from wiki_parser import french_au_parser
 
 
-def kapodistria_dataset_constructor(rc, cm, md):
-    remained_units = pd.read_csv('datasets/Kapodistrias_scheme/Remained.csv', sep='\t')['Remained'].values
+def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_scheme/'):
+    remained_units = pd.read_csv(path + 'Remained.csv', sep='\t')['Remained'].values
 
     # reads the entities from the dataframes and constructs/stores the neseccary values
     # IDs will be Kapodistria_RRCCMM where RR is region's id, CC prefecture's id and MM municipality's id
@@ -89,7 +89,7 @@ def kapodistria_dataset_constructor(rc, cm, md):
                             'Predicate': pd.Series(predicates),
                             'Object': pd.Series(objects)
                             })
-    dataset.to_csv("datasets/Kapodistrias_scheme/Kapodistrias_AU.csv", sep='\t', index=False)
+    dataset.to_csv(path + "Kapodistrias_AU.csv", sep='\t', index=False)
 
     print("Regions:\t\t", len(regions_labels))
     print("Prefectures:\t\t", len(prefectures_labels))
@@ -102,7 +102,7 @@ def kapodistria_dataset_constructor(rc, cm, md):
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def french_dataset_constructor(nr, fr, ru):
+def french_dataset_constructor(nr, fr, ru, path='datasets/French_scheme/'):
 
     # Forming data for the future regions
     fr_labels = list(fr.columns)
@@ -198,12 +198,12 @@ def french_dataset_constructor(nr, fr, ru):
     fr_dataset = pd.DataFrame({'Subject': pd.Series(fr_subjects),
                             'Predicate': pd.Series(fr_predicates),
                             'Object': pd.Series(fr_objects)})
-    fr_dataset.to_csv("datasets/French_scheme/French_FAU.csv", sep='\t', index=False)
+    fr_dataset.to_csv(path + "French_FAU.csv", sep='\t', index=False)
     # New Regions
     nr_dataset = pd.DataFrame({'Subject': pd.Series(nr_subjects),
                             'Predicate': pd.Series(nr_predicates),
                             'Object': pd.Series(nr_objects)})
-    nr_dataset.to_csv("datasets/French_scheme/French_NAU.csv", sep='\t', index=False)
+    nr_dataset.to_csv(path + "French_NAU.csv", sep='\t', index=False)
 
 
     return nr_dataset, fr_dataset
