@@ -5,7 +5,7 @@ import re
 from bs4 import BeautifulSoup
 
 
-def kapodistrias_au_parser(path='datasets/Kapodistrias_scheme/'):
+def kapodistrias_au_parser(path='/datasets/Kapodistrias_scheme/'):
 
     page = requests.get("https://el.wikipedia.org/wiki/%CE%94%CE%B9%CE%BF%CE%B9%CE%BA%CE%B7%CF%84%CE%B9%CE%BA%CE%AE_%CE%B4%CE%B9%CE%B1%CE%AF%CF%81%CE%B5%CF%83%CE%B7_%CF%84%CE%B7%CF%82_%CE%95%CE%BB%CE%BB%CE%AC%CE%B4%CE%B1%CF%82_1997")
     region_prefectures = {}
