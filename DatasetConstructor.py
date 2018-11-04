@@ -1,22 +1,10 @@
 import pandas as pd
-
 from wiki_parser import kapodistrias_au_parser
 from wiki_parser import french_au_parser
-import argparse
 
 
-def kapodistria_dataset_constructor():
+def kapodistria_dataset_constructor(rc, cm, md):
     remained_units = pd.read_csv('datasets/Kapodistrias_scheme/Remained.csv', sep='\t')['Remained'].values
-
-    # If the files exist they are loaded, else they are generated through wiki_scraper
-    try:
-        if args.country == 'G':
-            rc = pd.read_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t')
-            cm = pd.read_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t')
-            md = pd.read_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t')
-
-    except FileNotFoundError:
-        rc, cm, md = kapodistrias_au_parser()
 
     # reads the entities from the dataframes and constructs/stores the neseccary values
     # IDs will be Kapodistria_RRCCMM where RR is region's id, CC prefecture's id and MM municipality's id
@@ -108,18 +96,13 @@ def kapodistria_dataset_constructor():
     print("Municipalities:\t", len(municipalities_labels))
     print("\nTotal:\t\t", len(labels))
 
+    return dataset
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def french_dataset():
-    try:
-        nr = pd.read_csv("datasets/French_scheme/New_Regions.csv", sep='\t')
-        fr = pd.read_csv("datasets/French_scheme/Former_Regions.csv", sep='\t')
-        ru = pd.read_csv("datasets/French_scheme/Remained.csv", sep='\t')
-    except FileNotFoundError:
-        nr, fr, ru = french_au_parser()
-
+def french_dataset_constructor(nr, fr, ru):
 
     # Forming data for the future regions
     fr_labels = list(fr.columns)
@@ -223,19 +206,10 @@ def french_dataset():
     nr_dataset.to_csv("datasets/French_scheme/French_NAU.csv", sep='\t', index=False)
 
 
+    return nr_dataset, fr_dataset
+
     # reading the file with the geometries
-    from os import listdir
-    from os.path import isfile, join
-    onlyfiles = [f.split('.')[0] for f in listdir('datasets/French_scheme/French_Polygons')
-                 if isfile(join('datasets/French_scheme/French_Polygons', f))]
-
-
-
-
-# main
-parser = argparse.ArgumentParser(description='Choose country')
-parser.add_argument('country', type=str, help='G for Greece, F for France', nargs='?', default='F')
-args = parser.parse_args()
-if args.country != 'F':
-    args.country = 'G'
-french_dataset()
+    #from os import listdir
+    #from os.path import isfile, join
+    #onlyfiles = [f.split('.')[0] for f in listdir('datasets/French_scheme/French_Polygons')
+    #             if isfile(join('datasets/French_scheme/French_Polygons', f))]
