@@ -75,8 +75,7 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
     entity_ID = None
     # Mapps the RDF entities with their Geometries
     for row in dataset.iterrows():
-        if row[0] == 1000:
-            break
+
         # initialise varaibles
         if row[1]['Predicate'] == 'rdf:type':
             entity_type = row[1]['Object']
@@ -85,6 +84,7 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
         if row[1]['Predicate'] == 'rdf:label':
             entity_URI = row[1]['Subject']
             entity_label = row[1]['Object']
+            print(entity_label)
 
             # Maps the data
             # Regions' Geometries
@@ -96,12 +96,27 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
             elif entity_type == '<Prefecture>':
                 # Due to the fact that the labels of the datasets are different,
                 # I use Levinstein distance in order to detect the same entities
-                for key in prefectures_geometries:
-                    if  key.split(" ")[1][:3] != entity_label[1:-1].split(" ")[1].upper()[:3]:
-                        continue
-                    distance = LD(key.split(" ")[1], entity_label[1:-1].split(" ")[1].upper() )
-                    if distance < 3:
-                        break
+
+                if entity_label[1:-1] ==  "Νομαρχία Πειραιώς":
+                    key = 'Ν. ΠΕΙΡΑΙΩΣ ΚΑΙ ΝΗΣΩΝ'
+                else:
+                    temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
+                    for p_key in prefectures_geometries:
+
+                        temp_key = unidecode.unidecode(p_key.split(" ",1)[1])
+                        if  temp_key[:3] != temp_entity[:3]:
+                            continue
+                        if temp_key == temp_entity:
+                            key = p_key
+                            print("\t\t\t", key, temp_entity, 0, "\n\n")
+                            break
+
+                        else:
+                            distance = LD(temp_key, temp_entity )
+                            if distance < 3:
+                                key = p_key
+                                print("\t\t\t", key, temp_entity, distance, "\n\n")
+                                break
 
             # Municipalities' Geometries
             elif entity_type == '<Municipality>':
@@ -130,12 +145,13 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                     if temp_entity[:2] == 'AG' and len(temp_entity.split(" ")) >= 2:
                         temp_entity = temp_entity.split(" ")[1]
 
-                    for key in municipalities_geometries:
-                        temp_key = unidecode.unidecode(key)
+                    for m_key in municipalities_geometries:
+                        temp_key = unidecode.unidecode(m_key)
                         if temp_key[:2] == 'AG' and len(temp_key.split(" ")) >= 2:
                             temp_key = temp_key.split(" ")[1]
 
                         if temp_key == temp_entity:
+                            key = m_key
                             break
             if key is None:
                 print("ERROR: \t", entity_label)
@@ -154,7 +170,6 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
             elif entity_type == '<Municipality>':
                 objects += [geom_id, municipalities_geometries[key]]
                 municipalities_geometries.pop(key)
-
 
 
     # stores the geometries in a CSV
