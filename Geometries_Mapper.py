@@ -99,6 +99,8 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
 
                 if entity_label[1:-1] ==  "Νομαρχία Πειραιώς":
                     key = 'Ν. ΠΕΙΡΑΙΩΣ ΚΑΙ ΝΗΣΩΝ'
+                if entity_label[1:-1] == "Νομός Αιτωλίας και Ακαρνανίας":
+                    key = 'Ν. ΑΙΤΩΛΟΑΚΑΡΝΑΝΙΑΣ'
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
                     for p_key in prefectures_geometries:
@@ -142,17 +144,22 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                     key = "ΣΑΡΩΝΙΔΑΣ"
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
-                    if temp_entity[:2] == 'AG' and len(temp_entity.split(" ")) >= 2:
+                    if (temp_entity[:2] == 'AG' or temp_entity[:2] == 'NE') and len(temp_entity.split(" ")) >= 2:
                         temp_entity = temp_entity.split(" ")[1]
 
                     for m_key in municipalities_geometries:
                         temp_key = unidecode.unidecode(m_key)
-                        if temp_key[:2] == 'AG' and len(temp_key.split(" ")) >= 2:
+                        if (temp_key[:2] == 'AG' or temp_key[:2] == 'NE') and len(temp_key.split(" ")) >= 2:
                             temp_key = temp_key.split(" ")[1]
 
                         if temp_key == temp_entity:
                             key = m_key
                             break
+                        else:
+                            if temp_key[:3] == temp_entity[:3]:
+                                distance = LD(temp_key, temp_entity)
+                                if distance < 3:
+                                    key = m_key
             if key is None:
                 print("ERROR: \t", entity_label)
 
