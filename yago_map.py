@@ -22,7 +22,7 @@ def get_geonamesAD(filename = "datasets/yago/yagoGeonamesTypes.tsv"):
         else:
             skip_rows += step
 
-    print(administrative_divisions.shape)
+    print("No Rows: ",administrative_divisions.shape[0  ])
     administrative_divisions.to_csv("datasets/yago/administrative_units.tsv",sep='\t', index=False)
 
 
