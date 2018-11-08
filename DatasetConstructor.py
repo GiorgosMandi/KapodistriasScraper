@@ -91,11 +91,6 @@ def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_sche
                             })
     dataset.to_csv(path + "Kapodistrias_AU.csv", sep='\t', index=False)
 
-    print("Regions:\t\t", len(regions_labels))
-    print("Prefectures:\t\t", len(prefectures_labels))
-    print("Municipalities:\t", len(municipalities_labels))
-    print("\nTotal:\t\t", len(labels))
-
     return dataset
 
 
