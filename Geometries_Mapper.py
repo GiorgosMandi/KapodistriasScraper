@@ -84,7 +84,8 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
         if row[1]['Predicate'] == 'rdf:label':
             entity_URI = row[1]['Subject']
             entity_label = row[1]['Object']
-            print(entity_label)
+            print("Examining : ", entity_label)
+
 
             # Maps the data
             # Regions' Geometries
@@ -104,20 +105,17 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
                     for p_key in prefectures_geometries:
-
                         temp_key = unidecode.unidecode(p_key.split(" ",1)[1])
                         if  temp_key[:3] != temp_entity[:3]:
                             continue
                         if temp_key == temp_entity:
                             key = p_key
-                            print("\t\t\t", key, temp_entity, 0, "\n\n")
                             break
 
                         else:
                             distance = LD(temp_key, temp_entity )
                             if distance < 3:
                                 key = p_key
-                                print("\t\t\t", key, temp_entity, distance, "\n\n")
                                 break
 
             # Municipalities' Geometries
@@ -134,6 +132,10 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                     key = "ΣΑΛΑΜΙΝΑΣ"
                 elif entity_label[1:-1] == "Δήμος Σπάτων-Λούτσας":
                     key = "ΣΠΑΤΩΝ - ΛΟΥΤΣΑΣ"
+                elif entity_label[1:-1] ==  'Δήμος Παλαιού Φαλήρου':
+                    key = "ΠΑΛΑΙΟΥ ΦΑΛΗΡΟΥ"
+                elif entity_label[1:-1] ==  'Δήμος Καλυβίων Θορικού':
+                    key = "ΚΑΛΥΒΙΩΝ ΘΟΡΙΚΟΥ"
                 elif entity_label[1:-1] == "Κοινότητα Ανοίξεως":
                     key = "ΑΝΟΙΞΗΣ"
                 elif entity_label[1:-1] == "Κοινότητα Μαλακάσης":
@@ -160,6 +162,7 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                                 distance = LD(temp_key, temp_entity)
                                 if distance < 3:
                                     key = m_key
+
             if key is None:
                 print("ERROR: \t", entity_label)
 
