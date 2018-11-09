@@ -1,9 +1,9 @@
 import pandas as pd
-from wiki_parser import kapodistrias_au_parser
-from wiki_parser import french_au_parser
 
 
-def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_scheme/'):
+
+def kapodistria_dataset_constructor(config, rc, cm, md):
+    path = config['File_Paths']['kapodistrias_folder']
     remained_units = pd.read_csv(path + 'Remained.csv', sep='\t')['Remained'].values
 
     # reads the entities from the dataframes and constructs/stores the neseccary values
@@ -15,7 +15,7 @@ def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_sche
     regions_labels = list(rc.columns)
     regions_IDs = ["%02d" % i + '000000' for i in range(1, len(regions_labels)+1)]
     regions_UpperLevel = ['<Greece>'] * len(regions_labels)
-    regions_URIs = ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+    regions_URIs = ['<' + config['Wiki_Paths']['el_wiki2'] + label.replace(' ', '_') + '>'
                     for label in regions_labels]
 
     # PREFECTURES
@@ -28,7 +28,7 @@ def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_sche
         prefectures_labels += r_prefectures
         prefectures_IDs += ["%02d" % (index + 1) + "%02d" % i + '0000' for i in range(1, len(r_prefectures)+1)]
         prefectures_UpperLevel += [regions_URIs[index]] * len(r_prefectures)
-        prefectures_URIs += ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+        prefectures_URIs += ['<' + config['Wiki_Paths']['el_wiki2'] + label.replace(' ', '_') + '>'
                              for label in r_prefectures]
 
     # MUNICIPALITIES
@@ -41,7 +41,7 @@ def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_sche
         municipalities_labels += c_municipalities
         municipalities_IDs += [prefectures_IDs[index][:-4] + "%02d" % i + '00' for i in range(1, len(c_municipalities)+1)]
         municipalities_UpperLevel += [prefectures_URIs[index]] * len(c_municipalities)
-        municipalities_URIs += ['<https://el.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+        municipalities_URIs += ['<' + config['Wiki_Paths']['el_wiki2'] + label.replace(' ', '_') + '>'
                                 for label in c_municipalities]
 
     # DISTRICTS
@@ -89,7 +89,7 @@ def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_sche
                             'Predicate': pd.Series(predicates),
                             'Object': pd.Series(objects)
                             })
-    dataset.to_csv(path + "Kapodistrias_AU.csv", sep='\t', index=False)
+    dataset.to_csv(path + "Kapodistrias_AD.csv", sep='\t', index=False)
 
     return dataset
 
@@ -97,14 +97,15 @@ def kapodistria_dataset_constructor(rc, cm, md, path='datasets/Kapodistrias_sche
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def french_dataset_constructor(nr, fr, ru, path='datasets/French_scheme/'):
+def french_dataset_constructor(config, nr, fr, ru, ):
+    path = config['File_Paths']['french_folder']
 
     # Forming data for the future regions
     fr_labels = list(fr.columns)
     fr_IDs = ['<French_AU_0' + "%02d" % i + '00>'  for i in range(1, len(fr_labels) + 1)]
     fr_UpperLevels = ['<France>'] * len(fr_labels)
     fr_types = ['Region'] * len(fr_labels)
-    fr_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+    fr_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                     for label in fr_labels]
     # Forming the data for the former Departments
     for index, r in enumerate(list(fr.columns)):
@@ -113,7 +114,7 @@ def french_dataset_constructor(nr, fr, ru, path='datasets/French_scheme/'):
         fr_IDs += [fr_IDs[index][:-3] + "%02d>" % i for i in range(1, len(fr_departments) + 1)]
         fr_UpperLevels += [fr_URIs[index]] * len(fr_departments)
         fr_types += ['Department'] * len(fr_departments)
-        fr_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+        fr_URIs += ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                                 for label in fr_departments]
 
 
@@ -122,7 +123,7 @@ def french_dataset_constructor(nr, fr, ru, path='datasets/French_scheme/'):
     nr_IDs = ['<French_AU_1' + "%02d" % i + '00>' for i in range(1, len(nr_labels) + 1)]
     nr_UpperLevels = ['<France>'] * len(nr_labels)
     nr_types = ['Region'] * len(nr_labels)
-    nr_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+    nr_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                for label in nr_labels]
     # Forming the data for the new Departments
     for index, r in enumerate(list(nr.columns)):
@@ -131,7 +132,7 @@ def french_dataset_constructor(nr, fr, ru, path='datasets/French_scheme/'):
         nr_IDs += [nr_IDs[index][:-3] + "%02d>" % i for i in range(1, len(nr_departments) + 1)]
         nr_UpperLevels += [nr_URIs[index]] * len(nr_departments)
         nr_types += ['Department'] * len(nr_departments)
-        nr_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+        nr_URIs += ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                     for label in nr_departments]
 
 
@@ -140,7 +141,7 @@ def french_dataset_constructor(nr, fr, ru, path='datasets/French_scheme/'):
     ru_IDs = ['<French_AU_2' + "%02d" % i + '00>' for i in range(1, len(ru_labels) + 1)]
     ru_UpperLevels = ['<France>'] * len(ru_labels)
     ru_types = ['Region'] * len(ru_labels)
-    ru_URIs = ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+    ru_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                for label in ru_labels]
     # Forming the data for the Departments of regions that didn't change
     for index, r in enumerate(list(ru.columns)):
@@ -149,7 +150,7 @@ def french_dataset_constructor(nr, fr, ru, path='datasets/French_scheme/'):
         ru_IDs += [ru_IDs[index][:-3] + "%02d>" % i for i in range(1, len(ru_departments) + 1)]
         ru_UpperLevels += [ru_URIs[index]] * len(ru_departments)
         ru_types += ['Department'] * len(ru_departments)
-        ru_URIs += ['<https://en.wikipedia.org/wiki/' + label.replace(' ', '_') + '>'
+        ru_URIs += ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                                 for label in ru_departments]
 
     # former regions dataset

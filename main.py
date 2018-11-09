@@ -1,8 +1,12 @@
 import pandas as pd
 import argparse
-from wiki_parser import kapodistrias_au_parser, french_au_parser
+from wiki_parser import kapodistrias_ad_parser, french_ad_parser
 from DatasetConstructor import  kapodistria_dataset_constructor, french_dataset_constructor
 from Geometries_Mapper import Mapper
+
+import configparser
+config = configparser.RawConfigParser()
+config.read('config/config.ini')
 
 # main
 parser = argparse.ArgumentParser(description='Choose country')
@@ -18,24 +22,21 @@ else:
 # if the files don't exist, it constructs them by fetching the data from
 # their wikipedia pages -- Then it constructs the datasets in RDF form
 if args.country == 'G':
-    import os
-    print(os.path.basename(__file__))
-    rc = pd.read_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t')
     try:
-        rc = pd.read_csv("datasets/Kapodistrias_scheme/Regions_Prefectures.csv", sep='\t')
-        cm = pd.read_csv("datasets/Kapodistrias_scheme/Prefectures_Municipalities.csv", sep='\t')
-        md = pd.read_csv("datasets/Kapodistrias_scheme/Municipalities_Districts.csv", sep='\t')
+        rc = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "Regions_Prefectures.csv", sep='\t')
+        cm = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "Prefectures_Municipalities.csv", sep='\t')
+        md = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "Municipalities_Districts.csv", sep='\t')
     except FileNotFoundError:
-        rc, cm, md = kapodistrias_au_parser()
-    dataset = kapodistria_dataset_constructor(rc, cm, md)
+        rc, cm, md = kapodistrias_ad_parser(config)
+    dataset = kapodistria_dataset_constructor(config, rc, cm, md)
     Mapper(dataset)
 
 
 if args.country == 'F':
     try:
-        nr = pd.read_csv("datasets/French_scheme/New_Regions.csv", sep='\t')
-        fr = pd.read_csv("datasets/French_scheme/Former_Regions.csv", sep='\t')
-        ru = pd.read_csv("datasets/French_scheme/Remained.csv", sep='\t')
+        nr = pd.read_csv(config['File_Paths']['french_folder'] + "New_Regions.csv", sep='\t')
+        fr = pd.read_csv(config['File_Paths']['french_folder'] + "Former_Regions.csv", sep='\t')
+        ru = pd.read_csv(config['File_Paths']['french_folder'] + "Remained.csv", sep='\t')
     except FileNotFoundError:
-        nr, fr, ru = french_au_parser()
-    french_dataset_constructor(nr, fr, ru)
+        nr, fr, ru = french_ad_parser(config)
+    french_dataset_constructor(config, nr, fr, ru)

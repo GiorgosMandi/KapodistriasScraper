@@ -1,13 +1,17 @@
 import pandas as pd
 import requests
-import pickle
 import re
 from bs4 import BeautifulSoup
 
 
-def kapodistrias_au_parser(path='/datasets/Kapodistrias_scheme/'):
 
-    page = requests.get("https://el.wikipedia.org/wiki/%CE%94%CE%B9%CE%BF%CE%B9%CE%BA%CE%B7%CF%84%CE%B9%CE%BA%CE%AE_%CE%B4%CE%B9%CE%B1%CE%AF%CF%81%CE%B5%CF%83%CE%B7_%CF%84%CE%B7%CF%82_%CE%95%CE%BB%CE%BB%CE%AC%CE%B4%CE%B1%CF%82_1997")
+
+
+
+def kapodistrias_ad_parser(config):
+    path = config['File_Paths']['kapodistrias_folder']
+
+    page = requests.get(config['Wiki_Paths']['kapodistrias_ad'])
     region_prefectures = {}
     prefectures_municipalities = {}
     municipalities_districts = {}
@@ -35,7 +39,7 @@ def kapodistrias_au_parser(path='/datasets/Kapodistrias_scheme/'):
         else:
             print('GET ', prefecture.get_text())
             url = prefecture.find('a',  href=True)
-            munic_page = requests.get('https://el.wikipedia.org/'+url['href'])
+            munic_page = requests.get(config['Wiki_Paths']['el_wiki'] + url['href'])
             sub_soup = BeautifulSoup(munic_page.content, 'html.parser')
             sub_html = list(sub_soup.children)[2]
             municipalities_list = sub_html.find_all('ul')[1]
@@ -101,7 +105,7 @@ def kapodistrias_au_parser(path='/datasets/Kapodistrias_scheme/'):
                 # gets municipalities
                 print("GET ", prefecture.get_text())
                 url = prefecture.find('a',  href=True)
-                munic_page = requests.get('https://el.wikipedia.org/'+url['href'])
+                munic_page = requests.get(config['Wiki_Paths']['el_wiki'] + url['href'])
                 munic_soup = BeautifulSoup(munic_page.content, 'html.parser')
                 sub_html = list(munic_soup.children)[2]
                 municipalities_list = sub_html.find_all('ul')[1]
@@ -178,8 +182,9 @@ def kapodistrias_au_parser(path='/datasets/Kapodistrias_scheme/'):
 # ----------------------------------------------------------------------------------------------------------------------
 
 
-def french_au_parser(path ='datasets/French_scheme/'):
-    page = requests.get("https://en.wikipedia.org/wiki/Regions_of_France")
+def french_ad_parser(config):
+    path = config['File_Paths']['french_folder']
+    page = requests.get(config['Wiki_Paths']['french_ad'])
     soup = BeautifulSoup(page.content, 'html.parser')
     html = list(soup.children)[2]
     tables = html.find_all('table',  {"class": 'wikitable'})
@@ -195,7 +200,7 @@ def french_au_parser(path ='datasets/French_scheme/'):
 
             # gets Region's departments
             region_url = d.find('a', href=True)
-            region_page = requests.get('https://en.wikipedia.org/' + region_url['href'])
+            region_page = requests.get(config['Wiki_Paths']['en_wiki'] + region_url['href'])
             region_soup = BeautifulSoup(region_page.content, 'html.parser')
             region_html = list(region_soup.children)[2]
             department_table = region_html.find('ul', {'class': 'NavContent'})
@@ -208,7 +213,7 @@ def french_au_parser(path ='datasets/French_scheme/'):
             else:
                 remained_units[region_name] = pd.Series([])
 
-    # Gets that were affected
+    # Gets the Regions that were affected
     merged_table = tables[0]
     data = merged_table.find_all('td')[4:]
 
@@ -243,7 +248,7 @@ def french_au_parser(path ='datasets/French_scheme/'):
 
                 # gets Region's departments
                 region_url = d.find('a', href=True)
-                region_page = requests.get('https://en.wikipedia.org/' + region_url['href'])
+                region_page = requests.get(config['Wiki_Paths']['en_wiki'] + region_url['href'])
                 region_soup = BeautifulSoup(region_page.content, 'html.parser')
                 region_html = list(region_soup.children)[2]
                 department_list = region_html.find('ul', {'class': 'NavContent'}).find_all('li')
@@ -265,7 +270,7 @@ def french_au_parser(path ='datasets/French_scheme/'):
 
                 # gets Region's departments
                 region_url = d.find('a', href=True)
-                region_page = requests.get('https://en.wikipedia.org/' + region_url['href'])
+                region_page = requests.get(config['Wiki_Paths']['en_wiki'] + region_url['href'])
                 region_soup = BeautifulSoup(region_page.content, 'html.parser')
                 region_html = list(region_soup.children)[2]
                 department_list = region_html.find('ul', {'class': 'NavContent'}).find_all('li')
