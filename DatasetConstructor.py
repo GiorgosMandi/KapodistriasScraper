@@ -76,13 +76,13 @@ def kapodistria_dataset_constructor(config, rc, cm, md):
     for i in range(size):
         subjects += [URIs[i]] * 5
         objects += [types[i], IDs[i], '\'' + labels[i] + '\'', UpperLevels[i], '\'1997-##-##\'^^xsd:date']
-        predicates += ['rdf:type', 'monto:hasKapodistrias_ID', 'rdf:label', 'monto:has_UpperLevel',
-                       '<wasCreatedOnDate>']
+        predicates += [config['Predicates']['type'], config['Predicates']['kapodistrias_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
+                       config['Predicates']['temporal_created']]
         # inserts destruction date if it is not contained in remained_units
         if labels[i] not in remained_units:
             subjects += [URIs[i]]
             objects += ['\'2011-##-##\'^^xsd:date']
-            predicates += ['<wasDestroyedOnDate>']
+            predicates += [config['Predicates']['temporal_destroyed']]
 
     # csv Construction
     dataset = pd.DataFrame({'Subject': pd.Series(subjects),
@@ -102,7 +102,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
 
     # Forming data for the future regions
     fr_labels = list(fr.columns)
-    fr_IDs = ['<French_AU_0' + "%02d" % i + '00>'  for i in range(1, len(fr_labels) + 1)]
+    fr_IDs = ['<French_AD_0' + "%02d" % i + '00>'  for i in range(1, len(fr_labels) + 1)]
     fr_UpperLevels = ['<France>'] * len(fr_labels)
     fr_types = ['Region'] * len(fr_labels)
     fr_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
@@ -120,7 +120,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
 
     # Forming the data for the new Regions
     nr_labels = list(nr.columns)
-    nr_IDs = ['<French_AU_1' + "%02d" % i + '00>' for i in range(1, len(nr_labels) + 1)]
+    nr_IDs = ['<French_AD_1' + "%02d" % i + '00>' for i in range(1, len(nr_labels) + 1)]
     nr_UpperLevels = ['<France>'] * len(nr_labels)
     nr_types = ['Region'] * len(nr_labels)
     nr_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
@@ -138,7 +138,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
 
     # Forming the data of the regions that remained the same
     ru_labels = list(ru.columns)
-    ru_IDs = ['<French_AU_2' + "%02d" % i + '00>' for i in range(1, len(ru_labels) + 1)]
+    ru_IDs = ['<French_AD_2' + "%02d" % i + '00>' for i in range(1, len(ru_labels) + 1)]
     ru_UpperLevels = ['<France>'] * len(ru_labels)
     ru_types = ['Region'] * len(ru_labels)
     ru_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
@@ -159,8 +159,8 @@ def french_dataset_constructor(config, nr, fr, ru, ):
     fr_objects = []
     for i in range(len(fr_URIs)):
         fr_subjects += [fr_URIs[i]] * 6
-        fr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
-                       '<wasCreatedOnDate>', '<wasDestroyedOnDate>']
+        fr_predicates += [config['Predicates']['type'], config['Predicates']['has_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
+                       config['Predicates']['temporal_created'], config['Predicates']['temporal_destroyed']]
         fr_objects += [fr_types[i], fr_IDs[i], '\'' + fr_labels[i] + '\'', fr_UpperLevels[i],
                     '\'1981-##-##\'^^xsd:date', '\'2016-01-01\'^^xsd:date']
 
@@ -170,8 +170,8 @@ def french_dataset_constructor(config, nr, fr, ru, ):
     nr_objects = []
     for i in range(len(nr_URIs)):
         nr_subjects += [nr_URIs[i]] * 5
-        nr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
-                       '<wasCreatedOnDate>', ]
+        nr_predicates += [config['Predicates']['type'], config['Predicates']['has_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
+                       config['Predicates']['temporal_created'] ]
         nr_objects += [nr_types[i], nr_IDs[i], '\'' + nr_labels[i] + '\'', nr_UpperLevels[i],
                     '\'2016-01-01\'^^xsd:date']
 
@@ -180,10 +180,10 @@ def french_dataset_constructor(config, nr, fr, ru, ):
         fr_subjects += [ru_URIs[i]] * 5
         nr_subjects += [ru_URIs[i]] * 5
 
-        fr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
-                       '<wasCreatedOnDate>']
-        nr_predicates += ['rdf:type', 'monto:has_ID', 'rdf:label', 'monto:has_UpperLevel',
-                       '<wasCreatedOnDate>']
+        fr_predicates += [config['Predicates']['type'], config['Predicates']['has_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
+                       config['Predicates']['temporal_created']]
+        nr_predicates += [config['Predicates']['type'], config['Predicates']['has_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
+                       config['Predicates']['temporal_created']]
         fr_objects += [ru_types[i], ru_IDs[i], '\'' + ru_labels[i] + '\'', ru_UpperLevels[i],
                     '\'1981-##-##\'^^xsd:date']
         nr_objects += [ru_types[i], ru_IDs[i], '\'' + ru_labels[i] + '\'', ru_UpperLevels[i],
@@ -194,12 +194,12 @@ def french_dataset_constructor(config, nr, fr, ru, ):
     fr_dataset = pd.DataFrame({'Subject': pd.Series(fr_subjects),
                             'Predicate': pd.Series(fr_predicates),
                             'Object': pd.Series(fr_objects)})
-    fr_dataset.to_csv(path + "French_FAU.csv", sep='\t', index=False)
+    fr_dataset.to_csv(path + "French_FAD.csv", sep='\t', index=False)
     # New Regions
     nr_dataset = pd.DataFrame({'Subject': pd.Series(nr_subjects),
                             'Predicate': pd.Series(nr_predicates),
                             'Object': pd.Series(nr_objects)})
-    nr_dataset.to_csv(path + "French_NAU.csv", sep='\t', index=False)
+    nr_dataset.to_csv(path + "French_NAD.csv", sep='\t', index=False)
 
 
     return nr_dataset, fr_dataset
