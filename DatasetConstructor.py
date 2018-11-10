@@ -63,10 +63,10 @@ def kapodistria_dataset_constructor(config, rc, cm, md):
     IDs = ['<Kapodistrias_' + ids + '>' for ids in regions_IDs + prefectures_IDs + municipalities_IDs + districts_IDs]
     labels = [label for label in regions_labels + prefectures_labels + municipalities_labels + districts_labels]
     UpperLevels = regions_UpperLevel + prefectures_UpperLevel + municipalities_UpperLevel + districts_UpperLevel
-    types = ['<Region>'] * len(regions_URIs) +     \
-            ['<Prefecture>'] * len(prefectures_URIs) +   \
-            ['<Municipality>'] * len(municipalities_URIs) +\
-            ['<District>'] * len(districts_URIs)
+    types = [config['Types']['regions']] * len(regions_URIs) +              \
+            [config['Types']['prefectures']] * len(prefectures_URIs) +      \
+            [config['Types']['municipalities']] * len(municipalities_URIs) + \
+            [config['Types']['districts']] * len(districts_URIs)
 
     # forms the columns of the csv
     subjects = []
@@ -76,8 +76,8 @@ def kapodistria_dataset_constructor(config, rc, cm, md):
     for i in range(size):
         subjects += [URIs[i]] * 5
         objects += [types[i], IDs[i], '\'' + labels[i] + '\'', UpperLevels[i], '\'1997-##-##\'^^xsd:date']
-        predicates += [config['Predicates']['type'], config['Predicates']['kapodistrias_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
-                       config['Predicates']['temporal_created']]
+        predicates += [config['Predicates']['type'], config['Predicates']['kapodistrias_id'], config['Predicates']['label'],
+                       config['Predicates']['upper_level'], config['Predicates']['temporal_created']]
         # inserts destruction date if it is not contained in remained_units
         if labels[i] not in remained_units:
             subjects += [URIs[i]]
@@ -104,7 +104,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
     fr_labels = list(fr.columns)
     fr_IDs = ['<French_AD_0' + "%02d" % i + '00>'  for i in range(1, len(fr_labels) + 1)]
     fr_UpperLevels = ['<France>'] * len(fr_labels)
-    fr_types = ['Region'] * len(fr_labels)
+    fr_types = [config['Types']['regions']] * len(fr_labels)
     fr_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                     for label in fr_labels]
     # Forming the data for the former Departments
@@ -113,7 +113,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
         fr_labels += fr_departments
         fr_IDs += [fr_IDs[index][:-3] + "%02d>" % i for i in range(1, len(fr_departments) + 1)]
         fr_UpperLevels += [fr_URIs[index]] * len(fr_departments)
-        fr_types += ['Department'] * len(fr_departments)
+        fr_types += [config['Types']['departments']] * len(fr_departments)
         fr_URIs += ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                                 for label in fr_departments]
 
@@ -122,7 +122,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
     nr_labels = list(nr.columns)
     nr_IDs = ['<French_AD_1' + "%02d" % i + '00>' for i in range(1, len(nr_labels) + 1)]
     nr_UpperLevels = ['<France>'] * len(nr_labels)
-    nr_types = ['Region'] * len(nr_labels)
+    nr_types = [config['Types']['regions']] * len(nr_labels)
     nr_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                for label in nr_labels]
     # Forming the data for the new Departments
@@ -131,7 +131,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
         nr_labels += nr_departments
         nr_IDs += [nr_IDs[index][:-3] + "%02d>" % i for i in range(1, len(nr_departments) + 1)]
         nr_UpperLevels += [nr_URIs[index]] * len(nr_departments)
-        nr_types += ['Department'] * len(nr_departments)
+        nr_types += [config['Types']['departments']] * len(nr_departments)
         nr_URIs += ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                     for label in nr_departments]
 
@@ -140,7 +140,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
     ru_labels = list(ru.columns)
     ru_IDs = ['<French_AD_2' + "%02d" % i + '00>' for i in range(1, len(ru_labels) + 1)]
     ru_UpperLevels = ['<France>'] * len(ru_labels)
-    ru_types = ['Region'] * len(ru_labels)
+    ru_types = [config['Types']['regions']] * len(ru_labels)
     ru_URIs = ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                for label in ru_labels]
     # Forming the data for the Departments of regions that didn't change
@@ -149,7 +149,7 @@ def french_dataset_constructor(config, nr, fr, ru, ):
         ru_labels += ru_departments
         ru_IDs += [ru_IDs[index][:-3] + "%02d>" % i for i in range(1, len(ru_departments) + 1)]
         ru_UpperLevels += [ru_URIs[index]] * len(ru_departments)
-        ru_types += ['Department'] * len(ru_departments)
+        ru_types += [config['Types']['departments']] * len(ru_departments)
         ru_URIs += ['<' + config['Wiki_Paths']['en_wiki2'] + label.replace(' ', '_') + '>'
                                 for label in ru_departments]
 

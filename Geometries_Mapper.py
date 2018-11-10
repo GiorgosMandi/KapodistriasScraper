@@ -88,17 +88,16 @@ def Mapper(config, dataset):
             # Maps the data
             # Regions' Geometries
             key = None
-            if entity_type == '<Region>':
+            if entity_type == config['Types']['regions']:
                 key = entity_label[1:-1]
 
             # Prefectures' Geometries
-            elif entity_type == '<Prefecture>':
+            elif entity_type == config['Types']['prefectures']:
                 # Due to the fact that the labels of the datasets are different,
                 # I use Levinstein distance in order to detect the same entities
 
                 if entity_label[1:-1] in config['Map_Dictionaries']:
                     key = config['Map_Dictionaries'][entity_label[1:-1]]
-                    print("~~>", key)
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
                     for p_key in prefectures_geometries:
@@ -116,7 +115,7 @@ def Mapper(config, dataset):
                                 break
 
             # Municipalities' Geometries
-            elif entity_type == '<Municipality>':
+            elif entity_type == config['Types']['municipalities']:
                 # Most of the labels are the same in decoded formation
                 # except the ones in the following IF statements
                 if entity_label[1:-1] in config['Map_Dictionaries']:
@@ -149,13 +148,13 @@ def Mapper(config, dataset):
             geom_id = "<G_" + entity_ID[1:]
             subjects += [entity_URI, geom_id]
             predicates += [config['Predicates']['has_geometry'], config['Predicates']['asWKT']]
-            if entity_type == '<Region>':
+            if entity_type == config['Types']['regions']:
                 objects += [geom_id, region_geometries[key]]
                 region_geometries.pop(key)
-            elif entity_type == '<Prefecture>':
+            elif entity_type == config['Types']['prefectures']:
                 objects += [geom_id, prefectures_geometries[key]]
                 prefectures_geometries.pop(key)
-            elif entity_type == '<Municipality>':
+            elif entity_type == config['Types']['municipalities']:
                 objects += [geom_id, municipalities_geometries[key]]
                 municipalities_geometries.pop(key)
 
