@@ -2,6 +2,9 @@ import pandas as pd
 from simpledbf import Dbf5
 import unidecode
 
+
+
+
 # Levenshtein distance for comparing strings
 def LD(s, t):
     if s == "":
@@ -17,9 +20,10 @@ def LD(s, t):
     return res
 
 #
-def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapodistriakwn_dhmwn.dbf'
-           , wkt_folder='datasets/Kapodistrias_scheme/Geometries/WKT/',
-           path='datasets/Kapodistrias_scheme/'):
+def Mapper(config, dataset):
+    dbf_file= config['File_Paths']['dbf_file']
+    wkt_folder= config['File_Paths']['wkt_folder']
+    path= config['File_Paths']['kapodistrias_folder']
 
     # The labels of Shapefile
     dbf = Dbf5(dbf_file, codec='ISO-8859-7')
@@ -36,14 +40,8 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
         try:
             region_label = dbf.loc[dbf['ESYE_ID'] == str(e_id)]['REGION'].values[0]
             # Special occasions
-            if region_label == 'ΠΔΕ':
-                region_label = 'Περιφέρεια Δυτικής Ελλάδας'
-            if region_label == 'ΠΗ':
-                region_label = 'Περιφέρεια Ηπείρου'
-            if region_label == 'Π. Αν. Μακεδονίας κ Θράκης':
-                region_label = 'Περιφέρεια Ανατολικής Μακεδονίας και Θράκης'
-            if region_label == 'ΠΒΑ':
-                region_label = 'Περιφέρεια Βορείου Αιγαίου'
+            if region_label in config['Map_Dictionaries']:
+                region_label = config['Map_Dictionaries'][region_label]
         except IndexError:
             region_label = dbf.loc[dbf['ESYE_ID'] == "0" + str(e_id)]['REGION'].values[0]
         region_geometries[region_label] = regions_wkt['WKT'][index]
@@ -77,11 +75,11 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
     for row in dataset.iterrows():
 
         # initialise varaibles
-        if row[1]['Predicate'] == 'rdf:type':
+        if row[1]['Predicate'] == config['Predicates']['type']:
             entity_type = row[1]['Object']
-        if row[1]['Predicate'] == 'monto:hasKapodistrias_ID':
+        if row[1]['Predicate'] == config['Predicates']['kapodistrias_id']:
            entity_ID = row[1]['Object']
-        if row[1]['Predicate'] == 'rdf:label':
+        if row[1]['Predicate'] == config['Predicates']['label']:
             entity_URI = row[1]['Subject']
             entity_label = row[1]['Object']
             print("Examining : ", entity_label)
@@ -98,10 +96,9 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                 # Due to the fact that the labels of the datasets are different,
                 # I use Levinstein distance in order to detect the same entities
 
-                if entity_label[1:-1] ==  "Νομαρχία Πειραιώς":
-                    key = 'Ν. ΠΕΙΡΑΙΩΣ ΚΑΙ ΝΗΣΩΝ'
-                if entity_label[1:-1] == "Νομός Αιτωλίας και Ακαρνανίας":
-                    key = 'Ν. ΑΙΤΩΛΟΑΚΑΡΝΑΝΙΑΣ'
+                if entity_label[1:-1] in config['Map_Dictionaries']:
+                    key = config['Map_Dictionaries'][entity_label[1:-1]]
+                    print("~~>", key)
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
                     for p_key in prefectures_geometries:
@@ -122,28 +119,8 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
             elif entity_type == '<Municipality>':
                 # Most of the labels are the same in decoded formation
                 # except the ones in the following IF statements
-                if entity_label[1:-1] == "Δήμος Ιλίου":
-                    key = "ΝΕΩΝ ΛΙΟΣΙΩΝ (ΙΛΙΟΥ)"
-                elif entity_label[1:-1] == "Δήμος Μεταμορφώσεως":
-                    key = "ΜΕΤΑΜΟΡΦΩΣΗΣ"
-                elif entity_label[1:-1] == "Δήμος Αγίου Ιωάννου Ρέντη":
-                    key = "ΑΓΙΟΥ ΙΩΑΝΝΗ ΡΕΝΤΗ"
-                elif entity_label[1:-1] == "Δήμος Σαλαμίνος":
-                    key = "ΣΑΛΑΜΙΝΑΣ"
-                elif entity_label[1:-1] == "Δήμος Σπάτων-Λούτσας":
-                    key = "ΣΠΑΤΩΝ - ΛΟΥΤΣΑΣ"
-                elif entity_label[1:-1] ==  'Δήμος Παλαιού Φαλήρου':
-                    key = "ΠΑΛΑΙΟΥ ΦΑΛΗΡΟΥ"
-                elif entity_label[1:-1] ==  'Δήμος Καλυβίων Θορικού':
-                    key = "ΚΑΛΥΒΙΩΝ ΘΟΡΙΚΟΥ"
-                elif entity_label[1:-1] == "Κοινότητα Ανοίξεως":
-                    key = "ΑΝΟΙΞΗΣ"
-                elif entity_label[1:-1] == "Κοινότητα Μαλακάσης":
-                    key = "ΜΑΛΑΚΑΣΑΣ"
-                elif entity_label[1:-1] == "Κοινότητα Ροδοπόλεως":
-                    key = "ΡΟΔΟΠΟΛΗΣ"
-                elif entity_label[1:-1] == "Κοινότητα Σαρωνίδος":
-                    key = "ΣΑΡΩΝΙΔΑΣ"
+                if entity_label[1:-1] in config['Map_Dictionaries']:
+                    key = config['Map_Dictionaries'][entity_label[1:-1]]
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
                     if (temp_entity[:2] == 'AG' or temp_entity[:2] == 'NE') and len(temp_entity.split(" ")) >= 2:
@@ -164,13 +141,14 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                                     key = m_key
 
             if key is None:
-                print("ERROR: \t", entity_label)
+                print("--------------->ERROR: \t", entity_label)
+                continue
 
 
             # stores them in dictionary
             geom_id = "<G_" + entity_ID[1:]
             subjects += [entity_URI, geom_id]
-            predicates += ['<monto:hasGeometry>', '<monto:asWKT>']
+            predicates += [config['Predicates']['has_geometry'], config['Predicates']['asWKT']]
             if entity_type == '<Region>':
                 objects += [geom_id, region_geometries[key]]
                 region_geometries.pop(key)
@@ -187,5 +165,5 @@ def Mapper(dataset, dbf_file='datasets/Kapodistrias_scheme/Geometries/oria_kapod
                             'Predicate': pd.Series(predicates),
                             'Object': pd.Series(objects) })
     dataset = dataset.append(geometries)
-    dataset.to_csv(path + "Kapodistrias_AU_G.csv", sep='\t', index=False)
+    dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', index=False)
     return dataset

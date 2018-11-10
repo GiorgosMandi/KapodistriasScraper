@@ -29,7 +29,7 @@ if args.country == 'G':
     except FileNotFoundError:
         rc, cm, md = kapodistrias_ad_parser(config)
     dataset = kapodistria_dataset_constructor(config, rc, cm, md)
-    Mapper(dataset)
+    Mapper(config, dataset)
 
 
 if args.country == 'F':
