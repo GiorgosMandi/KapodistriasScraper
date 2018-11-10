@@ -19,7 +19,8 @@ def LD(s, t):
                LD(s[:-1], t[:-1]) + cost])
     return res
 
-#
+# Maps the labels of the dbf files and the produced dataset and inserts the
+# geometries in the dataset in WKT formation
 def Mapper(config, dataset):
     dbf_file= config['File_Paths']['dbf_file']
     wkt_folder= config['File_Paths']['wkt_folder']
