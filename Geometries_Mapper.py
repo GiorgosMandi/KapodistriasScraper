@@ -3,6 +3,7 @@ from simpledbf import Dbf5
 import unidecode
 
 
+# NOTE: there are divisions with the same name -- make key based on their id!
 
 
 # Levenshtein distance for comparing strings
@@ -47,6 +48,7 @@ def Mapper(config, dataset):
             region_label = dbf.loc[dbf['ESYE_ID'] == "0" + str(e_id)]['REGION'].values[0]
         region_geometries[region_label] = regions_wkt['WKT'][index]
 
+
     # Maps Prefectures' Geometries (WKT - Shapefile) and stores them in a dictionary
     prefectures_geometries = {}
     for index, e_id in enumerate(prefectures_wkt['PREF_ID']):
@@ -56,14 +58,35 @@ def Mapper(config, dataset):
             prefecture_label = dbf.loc[dbf['PREF_ID'] == "0" + str(e_id)]['PREFECTURE'].values[0]
         prefectures_geometries[prefecture_label] = prefectures_wkt['WKT'][index]
 
+
     # Maps Municipalities' Geometries (WKT - Shapefile) and stores them in a dictionary
     municipalities_geometries = {}
+    flag = False
     for index, e_id in enumerate(municipalities_wkt['ESYE_ID']):
         try:
+
             municipalities_label = dbf.loc[dbf['ESYE_ID'] == str(e_id)]['GREEKNAME'].values[0]
         except IndexError:
-            municipalities_label = dbf.loc[dbf['ESYE_ID'] == "0" + str(e_id)]['GREEKNAME'].values[0]
-        municipalities_geometries[municipalities_label] = municipalities_wkt['WKT'][index]
+            e_id = "0" + str(e_id)
+            municipalities_label = dbf.loc[dbf['ESYE_ID'] == e_id]['GREEKNAME'].values[0]
+
+        #special occasions
+        if municipalities_label == "ΑΓΙΟΥ ΚΩΝΣΤΑΝΤΙΝΟΥ" :
+            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΦΘΙΩΤΙΔΑΣ':
+                municipalities_geometries['Δήμος Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
+            else:
+                municipalities_geometries['Κοινότητα Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
+
+        elif municipalities_label == "ΑΥΛΩΝΟΣ" :
+            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΑΝΑΤΟΛΙΚΗΣ ΑΤΤΙΚΗΣ':
+                municipalities_geometries[municipalities_label + "_1"] = municipalities_wkt['WKT'][index]
+            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΜΕΣΣΗΝΙΑΣ':
+                municipalities_geometries[municipalities_label + "_2"] = municipalities_wkt['WKT'][index]
+            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΕΥΒΟΙΑΣ':
+                municipalities_geometries[municipalities_label + "_3"] = municipalities_wkt['WKT'][index]
+
+        else:
+            municipalities_geometries[municipalities_label] = municipalities_wkt['WKT'][index]
 
 
     subjects = []
@@ -72,6 +95,8 @@ def Mapper(config, dataset):
 
     entity_type = None
     entity_ID = None
+
+    aulona_count = 0
     # Mapps the RDF entities with their Geometries
     for row in dataset.iterrows():
 
@@ -121,6 +146,14 @@ def Mapper(config, dataset):
                 # except the ones in the following IF statements
                 if entity_label[1:-1] in config['Map_Dictionaries']:
                     key = config['Map_Dictionaries'][entity_label[1:-1]]
+                #special occasions
+                elif entity_label[1:-1] == "Δήμος Αυλώνα":
+                    if aulona_count == 0:
+                        key = 'ΑΥΛΩΝΟΣ_3'
+                        aulona_count += 1
+                    elif aulona_count == 1:
+                        key = 'ΑΥΛΩΝΟΣ_2'
+
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
                     if (temp_entity[:2] == 'AG' or temp_entity[:2] == 'NE') and len(temp_entity.split(" ")) >= 2:
