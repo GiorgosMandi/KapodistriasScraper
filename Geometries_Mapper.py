@@ -4,7 +4,7 @@ import unidecode
 
 
 # NOTE: there are divisions with the same name -- make key based on their id!
-
+#  'Δήμος Τυρού' 'Δήμος Σκιρίτιδας'
 
 # Levenshtein distance for comparing strings
 def LD(s, t):
@@ -61,7 +61,6 @@ def Mapper(config, dataset):
 
     # Maps Municipalities' Geometries (WKT - Shapefile) and stores them in a dictionary
     municipalities_geometries = {}
-    flag = False
     for index, e_id in enumerate(municipalities_wkt['ESYE_ID']):
         try:
 
@@ -70,7 +69,7 @@ def Mapper(config, dataset):
             e_id = "0" + str(e_id)
             municipalities_label = dbf.loc[dbf['ESYE_ID'] == e_id]['GREEKNAME'].values[0]
 
-        #special occasions
+        #special occasions -- there are two ag konstantin municipalities and 3 aulonos
         if municipalities_label == "ΑΓΙΟΥ ΚΩΝΣΤΑΝΤΙΝΟΥ" :
             if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΦΘΙΩΤΙΔΑΣ':
                 municipalities_geometries['Δήμος Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
