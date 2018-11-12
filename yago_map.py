@@ -7,15 +7,19 @@ def get_geonamesAD(config):
     filename = config['Geonames']['types_file']
     skip_rows = 0
     step = 500000
-    total_rows = 11591738
     administrative_divisions = pd.DataFrame()
     geoclasses = [config['Geonames']['first_order'],
                   config['Geonames']['second_order'],
                   config['Geonames']['third_order'],
                   config['Geonames']['fourth_order']]
     # reading dataset in chunks
-    while skip_rows < total_rows:
-        geonames_data = pd.read_csv(filename, header=None, skiprows=skip_rows, nrows=step, sep='\t')
+    continue_flag = True
+    while continue_flag: # skip_rows < total_rows:
+        try:
+            geonames_data = pd.read_csv(filename, header=None, skiprows=skip_rows, nrows=step, sep='\t')
+        except pd.errors.EmptyDataError:
+            continue_flag = False
+        print(geonames_data.shape[0])
         administrative_divisions = administrative_divisions.append\
             (geonames_data.loc[geonames_data[3].isin(geoclasses)][[1,2,3]])
 
