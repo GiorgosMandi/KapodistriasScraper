@@ -56,7 +56,7 @@ def get_geonamesLables(config, dataset=None):
         print("Skiping ", skiped_rows)
 
         administrative_divisions_labels = administrative_divisions_labels.append \
-            (geonames_data.loc[geonames_data[1].isin(dataset)])[[1,2,3]]
+            (geonames_data.loc[(geonames_data[2] == "rdfs:label") & (geonames_data[1].isin(dataset))])[[1,2,3]]
 
     print("No Rows: ", administrative_divisions_labels.shape[0])
     administrative_divisions_labels.to_csv(config['File_Paths']['yago_files'] +
