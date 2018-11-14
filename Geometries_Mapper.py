@@ -1,10 +1,10 @@
 import pandas as pd
 from simpledbf import Dbf5
 import unidecode
-
+import time
 
 # NOTE: there are divisions with the same name -- make key based on their id!
-#  'Δήμος Τυρού' 'Δήμος Σκιρίτιδας'
+# NOTE: fix  Δήμος Αγίου Γεωργίου
 
 # Levenshtein distance for comparing strings
 def LD(s, t):
@@ -94,7 +94,7 @@ def Mapper(config, dataset):
 
     entity_type = None
     entity_ID = None
-
+    time.clock()
     aulona_count = 0
     # Mapps the RDF entities with their Geometries
     for row in dataset.iterrows():
@@ -108,6 +108,7 @@ def Mapper(config, dataset):
             entity_URI = row[1]['Subject']
             entity_label = row[1]['Object']
             print("Examining : ", entity_label)
+            start_timer = time.time()
 
 
             # Maps the data
@@ -173,7 +174,7 @@ def Mapper(config, dataset):
                                     key = m_key
 
             if key is None:
-                print("--------------->ERROR: \t", entity_label)
+                print("\t--->ERROR: \t", entity_label,"duration :  %02d" %(time.time() - start_timer))
                 continue
 
 
@@ -190,7 +191,7 @@ def Mapper(config, dataset):
             elif entity_type == config['Types']['municipalities']:
                 objects += [geom_id, municipalities_geometries[key]]
                 municipalities_geometries.pop(key)
-
+            print("\tduration:  %02d" % (time.time() - start_timer),"\n")
 
     # stores the geometries in a CSV
     geometries = pd.DataFrame({'Subject': pd.Series(subjects),
