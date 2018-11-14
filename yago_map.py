@@ -1,6 +1,9 @@
 import pandas as pd
 import configparser
 
+
+
+
 # creates a dataset with all the administrative units that exist in
 # "datasets/yago/yagoGeonamesTypes.tsv" file
 def get_geonamesAD(config):
@@ -48,6 +51,9 @@ def get_geonamesLables(config, dataset=None):
                                         nrows=step, sep='\t')
         except pd.errors.EmptyDataError:
             break
+
+        skiped_rows += step
+        print("Skiping ", skiped_rows)
 
         administrative_divisions_labels = administrative_divisions_labels.append \
             (geonames_data.loc[geonames_data[1].isin(dataset)])[[1,2,3]]
