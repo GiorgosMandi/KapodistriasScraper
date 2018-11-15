@@ -3,8 +3,6 @@ from simpledbf import Dbf5
 import unidecode
 import time
 
-# NOTE: there are divisions with the same name -- make key based on their id!
-# NOTE: fix  Δήμος Αγίου Γεωργίου
 
 # Levenshtein distance for comparing strings
 def LD(s, t):
@@ -63,18 +61,46 @@ def Mapper(config, dataset):
     municipalities_geometries = {}
     for index, e_id in enumerate(municipalities_wkt['ESYE_ID']):
         try:
-
             municipalities_label = dbf.loc[dbf['ESYE_ID'] == str(e_id)]['GREEKNAME'].values[0]
         except IndexError:
             e_id = "0" + str(e_id)
             municipalities_label = dbf.loc[dbf['ESYE_ID'] == e_id]['GREEKNAME'].values[0]
 
-        #special occasions -- there are two ag konstantin municipalities and 3 aulonos
+        # conflicts -- special occasions which demand special treatments
         if municipalities_label == "ΑΓΙΟΥ ΚΩΝΣΤΑΝΤΙΝΟΥ" :
             if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΦΘΙΩΤΙΔΑΣ':
                 municipalities_geometries['Δήμος Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
             else:
                 municipalities_geometries['Κοινότητα Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
+
+        elif municipalities_label == "ΑΓΙΟΥ ΓΕΩΡΓΙΟΥ":
+            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΦΘΙΩΤΙΔΑΣ':
+                municipalities_geometries['Δήμος Αγίου Γεωργίου Τυμφρηστού'] = municipalities_wkt['WKT'][index]
+            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΘΕΣΣΑΛΟΝΙΚΗΣ':
+                municipalities_geometries['ΑΓΙΟΥ ΓΕΩΡΓΙΟΥ_1'] = municipalities_wkt['WKT'][index]
+            else:
+                municipalities_geometries['ΑΓΙΟΥ ΓΕΩΡΓΙΟΥ_2'] = municipalities_wkt['WKT'][index]
+
+        elif municipalities_label == "ΚΑΛΛΙΘΕΑ":
+            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΑΘΗΝΩΝ':
+                municipalities_geometries['ΚΑΛΛΙΘΕΑ_1'] = municipalities_wkt['WKT'][index]
+            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΘΕΣΣΑΛΟΝΙΚΗΣ':
+                municipalities_geometries['ΚΑΛΛΙΘΕΑ_2'] = municipalities_wkt['WKT'][index]
+            else:
+                municipalities_geometries['ΚΑΛΛΙΘΕΑ_3'] = municipalities_wkt['WKT'][index]
+
+        if municipalities_label == "ΚΟΡΩΝΕΙΑΣ" :
+            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΒΟΙΩΤΙΑΣ':
+                municipalities_geometries['Δήμος Κορώνης'] = municipalities_wkt['WKT'][index]
+            else:
+                municipalities_geometries['Δήμος_Κορώνειας'] = municipalities_wkt['WKT'][index]
+
+
+        elif municipalities_label == "ΣΤΑΥΡΟΥΠΟΛΗΣ":
+            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΘΕΣΣΑΛΟΝΙΚΗΣ':
+                municipalities_geometries['Δήμος Σταυρουπόλεως'] = municipalities_wkt['WKT'][index]
+            else:
+                municipalities_geometries['Δήμος Σταυρούπολης'] = municipalities_wkt['WKT'][index]
 
         elif municipalities_label == "ΑΥΛΩΝΟΣ" :
             if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΑΝΑΤΟΛΙΚΗΣ ΑΤΤΙΚΗΣ':
@@ -83,7 +109,6 @@ def Mapper(config, dataset):
                 municipalities_geometries[municipalities_label + "_2"] = municipalities_wkt['WKT'][index]
             elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΕΥΒΟΙΑΣ':
                 municipalities_geometries[municipalities_label + "_3"] = municipalities_wkt['WKT'][index]
-
         else:
             municipalities_geometries[municipalities_label] = municipalities_wkt['WKT'][index]
 
@@ -146,6 +171,9 @@ def Mapper(config, dataset):
                 # except the ones in the following IF statements
                 if entity_label[1:-1] in config['Map_Dictionaries']:
                     key = config['Map_Dictionaries'][entity_label[1:-1]]
+                elif entity_label[1:-1] in municipalities_geometries:
+                    key = entity_label
+
                 #special occasions
                 elif entity_label[1:-1] == "Δήμος Αυλώνα":
                     if aulona_count == 0:
