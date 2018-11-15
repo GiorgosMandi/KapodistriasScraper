@@ -172,7 +172,7 @@ def Mapper(config, dataset):
                 if entity_label[1:-1] in config['Map_Dictionaries']:
                     key = config['Map_Dictionaries'][entity_label[1:-1]]
                 elif entity_label[1:-1] in municipalities_geometries:
-                    key = entity_label
+                    key = entity_label[1:-1]
 
                 #special occasions
                 elif entity_label[1:-1] == "Δήμος Αυλώνα":
