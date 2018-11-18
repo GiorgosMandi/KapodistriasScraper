@@ -3,6 +3,8 @@ from simpledbf import Dbf5
 import unidecode
 import time
 
+# Δήμος Παλλήνης - Δήμος Κορώνειας - Δήμος Καλλιθέας - Δήμος Μεθώνης - Δήμος Νεάπολης Λασιθίου
+
 
 # Levenshtein distance for comparing strings
 def LD(s, t):
@@ -17,6 +19,8 @@ def LD(s, t):
     res = min([LD(s[:-1], t) + 1, LD(s, t[:-1]) + 1,
                LD(s[:-1], t[:-1]) + cost])
     return res
+
+
 
 # Maps the labels of the dbf files and the produced dataset and inserts the
 # geometries in the dataset in WKT formation
@@ -61,13 +65,19 @@ def Mapper(config, dataset):
     municipalities_geometries = {}
     for index, e_id in enumerate(municipalities_wkt['ESYE_ID']):
         try:
-            municipalities_label = dbf.loc[dbf['ESYE_ID'] == str(e_id)]['GREEKNAME'].values[0]
+            municipality_row = dbf.loc[dbf['ESYE_ID'] == str(e_id)]
+            municipalities_label = municipality_row['GREEKNAME'].values[0]
+            municipalities_prefecture = municipality_row['PREFECTURE'].values[0]
+
         except IndexError:
             e_id = "0" + str(e_id)
-            municipalities_label = dbf.loc[dbf['ESYE_ID'] == e_id]['GREEKNAME'].values[0]
+            municipality_row = dbf.loc[dbf['ESYE_ID'] == e_id]
+            municipalities_label = municipality_row['GREEKNAME'].values[0]
+            municipalities_prefecture = municipality_row['PREFECTURE'].values[0]
+
 
         # conflicts -- special occasions which demand special treatments
-        if municipalities_label == "ΑΓΙΟΥ ΚΩΝΣΤΑΝΤΙΝΟΥ" :
+        '''if municipalities_label == "ΑΓΙΟΥ ΚΩΝΣΤΑΝΤΙΝΟΥ" :
             if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΦΘΙΩΤΙΔΑΣ':
                 municipalities_geometries['Δήμος Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
             else:
@@ -93,7 +103,7 @@ def Mapper(config, dataset):
             if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΒΟΙΩΤΙΑΣ':
                 municipalities_geometries['Δήμος Κορώνης'] = municipalities_wkt['WKT'][index]
             else:
-                municipalities_geometries['Δήμος_Κορώνειας'] = municipalities_wkt['WKT'][index]
+                municipalities_geometries['Δήμος Κορώνειας'] = municipalities_wkt['WKT'][index]
 
 
         elif municipalities_label == "ΣΤΑΥΡΟΥΠΟΛΗΣ":
@@ -109,8 +119,11 @@ def Mapper(config, dataset):
                 municipalities_geometries[municipalities_label + "_2"] = municipalities_wkt['WKT'][index]
             elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΕΥΒΟΙΑΣ':
                 municipalities_geometries[municipalities_label + "_3"] = municipalities_wkt['WKT'][index]
+        else:'''
+        if municipalities_label in municipalities_geometries:
+            municipalities_geometries[municipalities_label].append((municipalities_prefecture, municipalities_wkt['WKT'][index]))
         else:
-            municipalities_geometries[municipalities_label] = municipalities_wkt['WKT'][index]
+            municipalities_geometries[municipalities_label] = [(municipalities_prefecture, municipalities_wkt['WKT'][index])]
 
 
     subjects = []
@@ -121,6 +134,7 @@ def Mapper(config, dataset):
     entity_ID = None
     time.clock()
     aulona_count = 0
+    error_counter = 0
     # Mapps the RDF entities with their Geometries
     for row in dataset.iterrows():
 
@@ -130,8 +144,11 @@ def Mapper(config, dataset):
         if row[1]['Predicate'] == config['Predicates']['kapodistrias_id']:
            entity_ID = row[1]['Object']
         if row[1]['Predicate'] == config['Predicates']['label']:
-            entity_URI = row[1]['Subject']
             entity_label = row[1]['Object']
+        if row[1]['Predicate'] == config['Predicates']['upper_level']:
+            entity_URI = row[1]['Subject']
+            entity_upper_level = row[1]['Object'].split('/')[-1][:-1].replace("_", " ")
+
             print("Examining : ", entity_label)
             start_timer = time.time()
 
@@ -141,6 +158,14 @@ def Mapper(config, dataset):
             key = None
             if entity_type == config['Types']['regions']:
                 key = entity_label[1:-1]
+
+                # stores them in RDF
+                geom_id = "<G_" + entity_ID[1:]
+                subjects += [entity_URI, geom_id]
+                predicates += [config['Predicates']['has_geometry'], config['Predicates']['asWKT']]
+                objects += [geom_id, region_geometries[key]]
+                region_geometries.pop(key)
+
 
             # Prefectures' Geometries
             elif entity_type == config['Types']['prefectures']:
@@ -158,29 +183,29 @@ def Mapper(config, dataset):
                         if temp_key == temp_entity:
                             key = p_key
                             break
-
                         else:
                             distance = LD(temp_key, temp_entity )
                             if distance < 3:
                                 key = p_key
                                 break
+                # stores them in RDF
+                geom_id = "<G_" + entity_ID[1:]
+                subjects += [entity_URI, geom_id]
+                predicates += [config['Predicates']['has_geometry'], config['Predicates']['asWKT']]
+                objects += [geom_id, prefectures_geometries[key]]
+                prefectures_geometries.pop(key)
+
+
 
             # Municipalities' Geometries
             elif entity_type == config['Types']['municipalities']:
+
                 # Most of the labels are the same in decoded formation
                 # except the ones in the following IF statements
                 if entity_label[1:-1] in config['Map_Dictionaries']:
                     key = config['Map_Dictionaries'][entity_label[1:-1]]
                 elif entity_label[1:-1] in municipalities_geometries:
                     key = entity_label[1:-1]
-
-                #special occasions
-                elif entity_label[1:-1] == "Δήμος Αυλώνα":
-                    if aulona_count == 0:
-                        key = 'ΑΥΛΩΝΟΣ_3'
-                        aulona_count += 1
-                    elif aulona_count == 1:
-                        key = 'ΑΥΛΩΝΟΣ_2'
 
                 else:
                     temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
@@ -200,31 +225,48 @@ def Mapper(config, dataset):
                                 distance = LD(temp_key, temp_entity)
                                 if distance < 3:
                                     key = m_key
+                if key is None:
+                    error_counter += 1
+                    print("Error: ", entity_label, "COUNT:", error_counter ,"\n\n")
+                    continue
 
-            if key is None:
-                print("\t--->ERROR: \t", entity_label,"duration :  %02d" %(time.time() - start_timer))
-                continue
+                # stores them in RDF
+                geom_id = "<G_" + entity_ID[1:]
+                subjects += [entity_URI, geom_id]
+                predicates += [config['Predicates']['has_geometry'], config['Predicates']['asWKT']]
+                if len(municipalities_geometries[key]) == 1:
+                    objects += [geom_id, municipalities_geometries[key][0][1]]
+                    municipalities_geometries.pop(key)
+                else:
+                    entity_upper_level = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
+                    if (entity_upper_level[:2] == 'AG' or entity_upper_level[:2] == 'NE') and len(entity_upper_level.split(" ")) >= 2:
+                        entity_upper_level = entity_upper_level.split(" ")[1]
+
+                    for prefectures in municipalities_geometries[key]:
+                        prefecture_label = prefectures[0]
+                        prefecture_label = unidecode.unidecode(prefecture_label[1:-1].split(" ", 1)[1].upper())
+                        if (prefecture_label[:2] == 'AG' or prefecture_label[:2] == 'NE') and len(prefecture_label.split(" ")) >= 2:
+                            prefecture_label = prefecture_label.split(" ")[1]
+                            print("\t\t\t",prefecture_label,"--", entity_upper_level)
+
+                        if prefecture_label == entity_upper_level:
+                            objects += [geom_id, prefectures[1]]
+                        elif LD(prefecture_label, entity_upper_level) < 3:
+                            objects += [geom_id, prefectures[1]]
+                            municipalities_geometries[key].remove(prefectures)
+
+                print("\t", key, " -- duration:  %02d" % (time.time() - start_timer), "left: ",
+                  len(municipalities_geometries), "\n\n")
 
 
-            # stores them in dictionary
-            geom_id = "<G_" + entity_ID[1:]
-            subjects += [entity_URI, geom_id]
-            predicates += [config['Predicates']['has_geometry'], config['Predicates']['asWKT']]
-            if entity_type == config['Types']['regions']:
-                objects += [geom_id, region_geometries[key]]
-                region_geometries.pop(key)
-            elif entity_type == config['Types']['prefectures']:
-                objects += [geom_id, prefectures_geometries[key]]
-                prefectures_geometries.pop(key)
-            elif entity_type == config['Types']['municipalities']:
-                objects += [geom_id, municipalities_geometries[key]]
-                municipalities_geometries.pop(key)
-            print("\tduration:  %02d" % (time.time() - start_timer),"\n")
+
+
+
 
     # stores the geometries in a CSV
     geometries = pd.DataFrame({'Subject': pd.Series(subjects),
-                            'Predicate': pd.Series(predicates),
-                            'Object': pd.Series(objects) })
+                                'Predicate': pd.Series(predicates),
+                                'Object': pd.Series(objects) })
     dataset = dataset.append(geometries)
     dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', index=False)
     return dataset
