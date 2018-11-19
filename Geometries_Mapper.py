@@ -20,10 +20,15 @@ def LD(s, t):
                LD(s[:-1], t[:-1]) + cost])
     return res
 
-def label_preprocess(label):
-    temp_label = unidecode.unidecode(label.split(" ", 1)[1].upper())
+def label_preprocess(label, split=False):
+    temp_label = unidecode.unidecode(label.upper())
+    if split:
+            temp_label = temp_label.split(" ", 1)[1]
     if (temp_label[:2] == 'AG' or temp_label[:2] == 'NE') and len(label.split(" ")) >= 2:
-        temp_label = temp_label.split(" ")[1]
+        try:
+            temp_label = temp_label.split(" ")[1]
+        except IndexError:
+            pass
     return temp_label
 
     
@@ -182,9 +187,9 @@ def Mapper(config, dataset):
                 if entity_label in config['Map_Dictionaries']:
                     key = config['Map_Dictionaries'][entity_label]
                 else:
-                    temp_entity = unidecode.unidecode(entity_label.split(" ", 1)[1].upper())
+                    temp_entity = label_preprocess(entity_label, True)
                     for p_key in prefectures_geometries:
-                        temp_key = unidecode.unidecode(p_key.split(" ",1)[1])
+                        temp_key = label_preprocess(p_key, True)
                         if  temp_key[:3] != temp_entity[:3]:
                             continue
                         if temp_key == temp_entity:
@@ -214,7 +219,7 @@ def Mapper(config, dataset):
                 elif entity_label in municipalities_geometries:
                     key = entity_label
                 else:
-                    temp_entity = label_preprocess(entity_label)
+                    temp_entity = label_preprocess(entity_label, True)
 
                     for m_key in municipalities_geometries:
                         temp_key = label_preprocess(m_key)
@@ -240,17 +245,22 @@ def Mapper(config, dataset):
                     objects += [geom_id, municipalities_geometries[key][0][1]]
                     municipalities_geometries.pop(key)
                 else:
-                    entity_upper_level = label_preprocess(entity_upper_level)
+                    entity_upper_level = label_preprocess(entity_upper_level, True)
 
                     for prefectures in municipalities_geometries[key]:
-                        prefecture_label =  label_preprocess(prefectures[0])
-                        print("-->\t\t",prefecture_label,"--", entity_upper_level)
+                        prefecture_label =  label_preprocess(prefectures[0], True)
 
-                        if prefecture_label == entity_upper_level:
-                            objects += [geom_id, prefectures[1]]
-                        elif LD(prefecture_label, entity_upper_level) < 3:
+                        if prefecture_label == "PEIRAIOS KAI NESON":
+                            prefectures = "PEIRAIOS"
+
+                        print("-->\t\t", prefecture_label, "--", entity_upper_level)
+                        found = prefecture_label == entity_upper_level
+                        if not found and abs(len(prefecture_label) - len(entity_upper_level)) < 3:
+                            found = LD(prefecture_label, entity_upper_level) < 3
+                        if found:
                             objects += [geom_id, prefectures[1]]
                             municipalities_geometries[key].remove(prefectures)
+                            break
 
                 print("\t", key, " -- duration:  %02d" % (time.time() - start_timer), "left: ",
                   len(municipalities_geometries), "\n\n")
