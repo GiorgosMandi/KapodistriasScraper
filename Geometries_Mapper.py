@@ -20,7 +20,13 @@ def LD(s, t):
                LD(s[:-1], t[:-1]) + cost])
     return res
 
+def label_preprocess(label):
+    temp_label = unidecode.unidecode(label.split(" ", 1)[1].upper())
+    if (temp_label[:2] == 'AG' or temp_label[:2] == 'NE') and len(label.split(" ")) >= 2:
+        temp_label = temp_label.split(" ")[1]
+    return temp_label
 
+    
 
 # Maps the labels of the dbf files and the produced dataset and inserts the
 # geometries in the dataset in WKT formation
@@ -132,8 +138,10 @@ def Mapper(config, dataset):
 
     entity_type = None
     entity_ID = None
+    entity_label =None
     time.clock()
-    aulona_count = 0
+    
+    # aulona_count = 0
     error_counter = 0
     # Mapps the RDF entities with their Geometries
     for row in dataset.iterrows():
@@ -144,7 +152,7 @@ def Mapper(config, dataset):
         if row[1]['Predicate'] == config['Predicates']['kapodistrias_id']:
            entity_ID = row[1]['Object']
         if row[1]['Predicate'] == config['Predicates']['label']:
-            entity_label = row[1]['Object']
+            entity_label = row[1]['Object'][1:-1]
         if row[1]['Predicate'] == config['Predicates']['upper_level']:
             entity_URI = row[1]['Subject']
             entity_upper_level = row[1]['Object'].split('/')[-1][:-1].replace("_", " ")
@@ -152,12 +160,11 @@ def Mapper(config, dataset):
             print("Examining : ", entity_label)
             start_timer = time.time()
 
-
             # Maps the data
             # Regions' Geometries
             key = None
             if entity_type == config['Types']['regions']:
-                key = entity_label[1:-1]
+                key = entity_label
 
                 # stores them in RDF
                 geom_id = "<G_" + entity_ID[1:]
@@ -172,10 +179,10 @@ def Mapper(config, dataset):
                 # Due to the fact that the labels of the datasets are different,
                 # I use Levinstein distance in order to detect the same entities
 
-                if entity_label[1:-1] in config['Map_Dictionaries']:
-                    key = config['Map_Dictionaries'][entity_label[1:-1]]
+                if entity_label in config['Map_Dictionaries']:
+                    key = config['Map_Dictionaries'][entity_label]
                 else:
-                    temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
+                    temp_entity = unidecode.unidecode(entity_label.split(" ", 1)[1].upper())
                     for p_key in prefectures_geometries:
                         temp_key = unidecode.unidecode(p_key.split(" ",1)[1])
                         if  temp_key[:3] != temp_entity[:3]:
@@ -202,21 +209,15 @@ def Mapper(config, dataset):
 
                 # Most of the labels are the same in decoded formation
                 # except the ones in the following IF statements
-                if entity_label[1:-1] in config['Map_Dictionaries']:
-                    key = config['Map_Dictionaries'][entity_label[1:-1]]
-                elif entity_label[1:-1] in municipalities_geometries:
-                    key = entity_label[1:-1]
-
+                if entity_label in config['Map_Dictionaries']:
+                    key = config['Map_Dictionaries'][entity_label]
+                elif entity_label in municipalities_geometries:
+                    key = entity_label
                 else:
-                    temp_entity = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
-                    if (temp_entity[:2] == 'AG' or temp_entity[:2] == 'NE') and len(temp_entity.split(" ")) >= 2:
-                        temp_entity = temp_entity.split(" ")[1]
+                    temp_entity = label_preprocess(entity_label)
 
                     for m_key in municipalities_geometries:
-                        temp_key = unidecode.unidecode(m_key)
-                        if (temp_key[:2] == 'AG' or temp_key[:2] == 'NE') and len(temp_key.split(" ")) >= 2:
-                            temp_key = temp_key.split(" ")[1]
-
+                        temp_key = label_preprocess(m_key)
                         if temp_key == temp_entity:
                             key = m_key
                             break
@@ -234,20 +235,16 @@ def Mapper(config, dataset):
                 geom_id = "<G_" + entity_ID[1:]
                 subjects += [entity_URI, geom_id]
                 predicates += [config['Predicates']['has_geometry'], config['Predicates']['asWKT']]
+
                 if len(municipalities_geometries[key]) == 1:
                     objects += [geom_id, municipalities_geometries[key][0][1]]
                     municipalities_geometries.pop(key)
                 else:
-                    entity_upper_level = unidecode.unidecode(entity_label[1:-1].split(" ", 1)[1].upper())
-                    if (entity_upper_level[:2] == 'AG' or entity_upper_level[:2] == 'NE') and len(entity_upper_level.split(" ")) >= 2:
-                        entity_upper_level = entity_upper_level.split(" ")[1]
+                    entity_upper_level = label_preprocess(entity_upper_level)
 
                     for prefectures in municipalities_geometries[key]:
-                        prefecture_label = prefectures[0]
-                        prefecture_label = unidecode.unidecode(prefecture_label[1:-1].split(" ", 1)[1].upper())
-                        if (prefecture_label[:2] == 'AG' or prefecture_label[:2] == 'NE') and len(prefecture_label.split(" ")) >= 2:
-                            prefecture_label = prefecture_label.split(" ")[1]
-                            print("\t\t\t",prefecture_label,"--", entity_upper_level)
+                        prefecture_label =  label_preprocess(prefectures[0])
+                        print("-->\t\t",prefecture_label,"--", entity_upper_level)
 
                         if prefecture_label == entity_upper_level:
                             objects += [geom_id, prefectures[1]]
