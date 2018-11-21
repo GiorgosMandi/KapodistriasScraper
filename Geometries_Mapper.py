@@ -3,8 +3,6 @@ from simpledbf import Dbf5
 import unidecode
 import time
 
-# Δήμος Παλλήνης - Δήμος Κορώνειας - Δήμος Καλλιθέας - Δήμος Μεθώνης - Δήμος Νεάπολης Λασιθίου
-
 
 # Levenshtein distance for comparing strings
 def LD(s, t):
@@ -88,49 +86,6 @@ def Mapper(config, dataset):
 
 
         # conflicts -- special occasions which demand special treatments
-        '''if municipalities_label == "ΑΓΙΟΥ ΚΩΝΣΤΑΝΤΙΝΟΥ" :
-            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΦΘΙΩΤΙΔΑΣ':
-                municipalities_geometries['Δήμος Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
-            else:
-                municipalities_geometries['Κοινότητα Αγίου Κωνσταντίνου'] = municipalities_wkt['WKT'][index]
-
-        elif municipalities_label == "ΑΓΙΟΥ ΓΕΩΡΓΙΟΥ":
-            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΦΘΙΩΤΙΔΑΣ':
-                municipalities_geometries['Δήμος Αγίου Γεωργίου Τυμφρηστού'] = municipalities_wkt['WKT'][index]
-            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΘΕΣΣΑΛΟΝΙΚΗΣ':
-                municipalities_geometries['ΑΓΙΟΥ ΓΕΩΡΓΙΟΥ_1'] = municipalities_wkt['WKT'][index]
-            else:
-                municipalities_geometries['ΑΓΙΟΥ ΓΕΩΡΓΙΟΥ_2'] = municipalities_wkt['WKT'][index]
-
-        elif municipalities_label == "ΚΑΛΛΙΘΕΑ":
-            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΑΘΗΝΩΝ':
-                municipalities_geometries['ΚΑΛΛΙΘΕΑ_1'] = municipalities_wkt['WKT'][index]
-            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΘΕΣΣΑΛΟΝΙΚΗΣ':
-                municipalities_geometries['ΚΑΛΛΙΘΕΑ_2'] = municipalities_wkt['WKT'][index]
-            else:
-                municipalities_geometries['ΚΑΛΛΙΘΕΑ_3'] = municipalities_wkt['WKT'][index]
-
-        if municipalities_label == "ΚΟΡΩΝΕΙΑΣ" :
-            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΒΟΙΩΤΙΑΣ':
-                municipalities_geometries['Δήμος Κορώνης'] = municipalities_wkt['WKT'][index]
-            else:
-                municipalities_geometries['Δήμος Κορώνειας'] = municipalities_wkt['WKT'][index]
-
-
-        elif municipalities_label == "ΣΤΑΥΡΟΥΠΟΛΗΣ":
-            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΘΕΣΣΑΛΟΝΙΚΗΣ':
-                municipalities_geometries['Δήμος Σταυρουπόλεως'] = municipalities_wkt['WKT'][index]
-            else:
-                municipalities_geometries['Δήμος Σταυρούπολης'] = municipalities_wkt['WKT'][index]
-
-        elif municipalities_label == "ΑΥΛΩΝΟΣ" :
-            if dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΑΝΑΤΟΛΙΚΗΣ ΑΤΤΙΚΗΣ':
-                municipalities_geometries[municipalities_label + "_1"] = municipalities_wkt['WKT'][index]
-            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΜΕΣΣΗΝΙΑΣ':
-                municipalities_geometries[municipalities_label + "_2"] = municipalities_wkt['WKT'][index]
-            elif dbf.loc[dbf['ESYE_ID'] == str(e_id)]['PREFECTURE'].values[0] == 'Ν. ΕΥΒΟΙΑΣ':
-                municipalities_geometries[municipalities_label + "_3"] = municipalities_wkt['WKT'][index]
-        else:'''
         if municipalities_label in municipalities_geometries:
             municipalities_geometries[municipalities_label].append((municipalities_prefecture, municipalities_wkt['WKT'][index]))
         else:
@@ -146,7 +101,6 @@ def Mapper(config, dataset):
     entity_label =None
     time.clock()
     
-    # aulona_count = 0
     error_counter = 0
     # Mapps the RDF entities with their Geometries
     for row in dataset.iterrows():
@@ -276,4 +230,5 @@ def Mapper(config, dataset):
                                 'Object': pd.Series(objects) })
     dataset = dataset.append(geometries)
     dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', index=False)
+    print("Errors: ", error_counter)
     return dataset
