@@ -2,7 +2,7 @@ import pandas as pd
 import argparse
 from wiki_parser import kapodistrias_ad_parser, french_ad_parser
 from DatasetConstructor import  kapodistria_dataset_constructor, french_dataset_constructor
-from Geometries_Mapper import Mapper
+from Mapper import Mapper
 
 import configparser
 config = configparser.RawConfigParser()
@@ -29,7 +29,9 @@ if args.country == 'G':
     except FileNotFoundError:
         rc, cm, md = kapodistrias_ad_parser(config)
     dataset = kapodistria_dataset_constructor(config, rc, cm, md)
-    Mapper(config, dataset)
+
+    mapper = Mapper(config)
+    mapper.Geometries_Mapper(dataset)
 
 
 if args.country == 'F':
