@@ -1,5 +1,4 @@
 import pandas as pd
-import rdflib as rdf
 import configparser
 
 
@@ -36,16 +35,15 @@ def get_geonamesAD(config):
     return administrative_divisions
 
 
-# finds the labels of the administrative units entities from
-# the overall yago's geonames dataset
-def get_geonamesLabels(config, dataset=None):
+# finds the date facts of the entities in dataset
+def get_yagoDateFacts(config,produced_filename, dataset=None):
     filename = config['Geonames']['yago_dates']
     step = 1000000
     skiped_rows = 0
-    administrative_divisions_labels = pd.DataFrame()
     if dataset is None:
-        dataset = pd.read_csv(config['File_Paths']['yago_files']+"administrative_units.tsv", sep='\t', header=None)[0].values[1:]
-
+        dataset = pd.read_csv(config['File_Paths']['yago_files']+"administrative_units.tsv", sep='\t'
+                              , header=None)[0].values[1:]
+    date_facts = []
     # reads dataset in chunks
     while True:
         try:
@@ -53,16 +51,41 @@ def get_geonamesLabels(config, dataset=None):
         except pd.errors.EmptyDataError:
             break
         skiped_rows += step
-        administrative_divisions_labels.append(geonames_data.loc[geonames_data[1].isin(dataset)])
-        print(administrative_divisions_labels)
 
-    print("No Rows: ", administrative_divisions_labels.shape[0])
-    administrative_divisions_labels.to_csv(config['File_Paths']['yago_files'] +
-                                        "administrative_units_labels.tsv", sep='\t', index=False)
+        date_facts += list(set(geonames_data[1].values).intersection(set(dataset)))
+        print(len(date_facts))
 
+    print("No Rows: ", len(date_facts))
+    df = pd.DataFrame({"Date Facts" : pd.Series(date_facts)})
+    df.to_csv(config['File_Paths']['yago_files'] + produced_filename, sep='\t', index=False)
+
+
+# finds yago triplets that their URIs exist in dataset
+def get_yago_triplets(config,produced_filename, dataset=None):
+
+    filename = config['File_Paths']['yago_files'] + "yagoFacts.tsv"
+    step = 1000000
+    skiped_rows = 0
+    results = pd.DataFrame()
+    if dataset is None:
+        dataset = pd.read_csv(config['File_Paths']['yago_files'] + "administrative_units_datefacts.tsv", sep='\t'
+                              , header=None)[0].values
+    while True:
+        try:
+            yago_data = pd.read_csv(filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t')[[0, 1, 2, 3]]
+        except pd.errors.EmptyDataError:
+            break
+        skiped_rows += step
+        results = results.append(yago_data.loc[yago_data[1].isin(dataset)])
+        print(skiped_rows, "\t", len(results))
+
+    print("No Rows: ", len(results))
+    results.to_csv(config['File_Paths']['yago_files'] + produced_filename
+              , sep='\t', index=False)
 
 
 configs = configparser.RawConfigParser()
 configs.read('config/config.ini')
 #get_geonamesAD(configs)
-get_geonamesLabels(configs)
+#get_yagoDateFacts(configs, "administrative_units_datefacts.tsv")
+get_yago_triplets(configs, "AdministrativeUnits_DateFacts.tsv")
