@@ -2,6 +2,7 @@ import pandas as pd
 from simpledbf import Dbf5
 import unidecode
 import time
+import csv
 
 
 
@@ -26,7 +27,8 @@ class Mapper:
 
     def __label_preprocess(self, label, split=False):
         temp_label = unidecode.unidecode(label.upper())
-        if split or label[:3] == "N. ":
+
+        if split or label[:3] == "Ν. ":
             temp_label = temp_label.split(" ", 1)[1]
         if (temp_label[:2] == 'AG' or temp_label[:2] == 'NE') and len(label.split(" ")) >= 2:
             try:
@@ -131,13 +133,14 @@ class Mapper:
 
 
                 key = None
-                area_dict = None
                 if entity_type == self.config['Types']['regions']:
                     area_dict = region_geometries
                 elif entity_type == self.config['Types']['prefectures']:
                     area_dict = prefectures_geometries
                 elif entity_type == self.config['Types']['municipalities']:
                     area_dict = municipalities_geometries
+                else:
+                    break
 
                 # searches to find which geometry label matches with the entity's label
                 if entity_label in self.config['Map_Dictionaries']:
@@ -158,40 +161,49 @@ class Mapper:
                                     key = m_key
                 if key is None:
                     errors.append(entity_label)
-                    print("Error: ", entity_label, "COUNT:", len(errors), "\n\n")
+                    print("Error 1: ", entity_label, "COUNT:", len(errors), "\n\n")
                     continue
 
                 # stores them in RDF
                 geom_id = "<G_" + entity_ID[1:]
-                subjects += [entity_URI, geom_id]
-                predicates += [self.config['Predicates']['has_geometry'], self.config['Predicates']['asWKT']]
                 if entity_type == self.config['Types']['regions']:
-                    objects += [geom_id, region_geometries[key]]
+                    objects += [geom_id, "\"" + region_geometries[key] + "\""]
+                    subjects += [entity_URI, geom_id]
+                    predicates += [self.config['Predicates']['has_geometry'], self.config['Predicates']['asWKT']]
                     region_geometries.pop(key)
                 if entity_type == self.config['Types']['prefectures']:
-                    objects += [geom_id, prefectures_geometries[key]]
+                    objects += [geom_id, "\"" + prefectures_geometries[key] + "\""]
+                    subjects += [entity_URI, geom_id]
+                    predicates += [self.config['Predicates']['has_geometry'], self.config['Predicates']['asWKT']]
                     prefectures_geometries.pop(key)
                 if entity_type == self.config['Types']['municipalities']:
                     if len(area_dict[key]) == 1:
-                        objects += [geom_id, municipalities_geometries[key][0][1]]
+                        objects += [geom_id, "\"" + municipalities_geometries[key][0][1] + "\""]
+                        subjects += [entity_URI, geom_id]
+                        predicates += [self.config['Predicates']['has_geometry'], self.config['Predicates']['asWKT']]
                         municipalities_geometries.pop(key)
                     else:
+                        temp_entity_upper_level = entity_upper_level
                         entity_upper_level = self.__label_preprocess(entity_upper_level, True)
-
+                        found = False
                         for prefectures in municipalities_geometries[key]:
                             prefecture_label = self.__label_preprocess(prefectures[0], True)
-
                             if prefecture_label == "PEIRAIOS KAI NESON":
-                                prefectures = "PEIRAIOS"
+                                prefecture_label = "PEIRAIOS"
 
                             print("-->\t\t", prefecture_label, "--", entity_upper_level)
                             found = prefecture_label == entity_upper_level
                             if not found and abs(len(prefecture_label) - len(entity_upper_level)) < 3:
                                 found = self.__LD(prefecture_label, entity_upper_level) < 3
                             if found:
-                                objects += [geom_id, prefectures[1]]
+                                objects += [geom_id, "\"" + prefectures[1] + "\""]
+                                subjects += [entity_URI, geom_id]
+                                predicates += [self.config['Predicates']['has_geometry'],
+                                               self.config['Predicates']['asWKT']]
                                 municipalities_geometries[key].remove(prefectures)
                                 break
+                        if not found:
+                            print("Error 2: ", entity_label, temp_entity_upper_level)
 
                 print("\t", key, " -- duration:  %02d" % (time.time() - start_timer), "left: ",
                       len(municipalities_geometries), "\n\n")
@@ -200,10 +212,20 @@ class Mapper:
         # stores the geometries in a CSV
         geometries = pd.DataFrame({'Subject': pd.Series(subjects),
                                    'Predicate': pd.Series(predicates),
-                                   'Object': pd.Series(objects)})
+                                   'Object': pd.Series(objects),
+                                   'Ends' : pd.Series(["." *len(objects)])})
         dataset = dataset.append(geometries)
-        dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', index=False)
+        dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', index=False, quoting=csv.QUOTE_NONE)
         print("Errors:\n")
         for error in errors:
-            print(error)
+            print("\t",error)
+        print("\n\nRest Regions:")
+        for key in region_geometries.keys():
+            print("\t",key)
+        print("\n\nRest Perfectures:")
+        for key in prefectures_geometries.keys():
+            print("\t", key)
+        print("\n\nRest Municipalities:")
+        for key in municipalities_geometries.keys():
+            print("\t", key)
         return dataset

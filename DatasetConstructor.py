@@ -1,5 +1,5 @@
 import pandas as pd
-
+import csv
 
 
 def kapodistria_dataset_constructor(config, rc, cm, md):
@@ -75,21 +75,23 @@ def kapodistria_dataset_constructor(config, rc, cm, md):
     size = len(labels)
     for i in range(size):
         subjects += [URIs[i]] * 5
-        objects += [types[i], IDs[i], '\'' + labels[i] + '\'', UpperLevels[i], '\'1997-##-##\'^^xsd:date']
+        objects += [types[i], IDs[i], '\"' + labels[i] + '\"', UpperLevels[i], '\"1997-##-##\"^^xsd:date' ]
         predicates += [config['Predicates']['type'], config['Predicates']['kapodistrias_id'], config['Predicates']['label'],
                        config['Predicates']['upper_level'], config['Predicates']['temporal_created']]
         # inserts destruction date if it is not contained in remained_units
         if labels[i] not in remained_units:
             subjects += [URIs[i]]
-            objects += ['\'2011-##-##\'^^xsd:date']
+            objects += ['\"2011-##-##\"^^xsd:date']
             predicates += [config['Predicates']['temporal_destroyed']]
+
 
     # csv Construction
     dataset = pd.DataFrame({'Subject': pd.Series(subjects),
                             'Predicate': pd.Series(predicates),
-                            'Object': pd.Series(objects)
+                            'Object': pd.Series(objects),
+                            'Ends' : pd.Series(["."] * len(objects))
                             })
-    dataset.to_csv(path + "Kapodistrias_AD.csv", sep='\t', index=False)
+    dataset.to_csv(path + "Kapodistrias_AD.csv", sep='\t', index=False, quoting=csv.QUOTE_NONE)
 
     return dataset
 
@@ -161,8 +163,8 @@ def french_dataset_constructor(config, nr, fr, ru, ):
         fr_subjects += [fr_URIs[i]] * 6
         fr_predicates += [config['Predicates']['type'], config['Predicates']['has_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
                        config['Predicates']['temporal_created'], config['Predicates']['temporal_destroyed']]
-        fr_objects += [fr_types[i], fr_IDs[i], '\'' + fr_labels[i] + '\'', fr_UpperLevels[i],
-                    '\'1981-##-##\'^^xsd:date', '\'2016-01-01\'^^xsd:date']
+        fr_objects += [fr_types[i], fr_IDs[i], '\"' + fr_labels[i] + '\"', fr_UpperLevels[i],
+                    '\"1981-##-##\"^^xsd:date', '\"2016-01-01\"^^xsd:date']
 
     # new regions dataset
     nr_subjects = []
@@ -172,8 +174,8 @@ def french_dataset_constructor(config, nr, fr, ru, ):
         nr_subjects += [nr_URIs[i]] * 5
         nr_predicates += [config['Predicates']['type'], config['Predicates']['has_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
                        config['Predicates']['temporal_created'] ]
-        nr_objects += [nr_types[i], nr_IDs[i], '\'' + nr_labels[i] + '\'', nr_UpperLevels[i],
-                    '\'2016-01-01\'^^xsd:date']
+        nr_objects += [nr_types[i], nr_IDs[i], '\"' + nr_labels[i] + '\"', nr_UpperLevels[i],
+                    '\"2016-01-01\"^^xsd:date']
 
     # add remained regions to both datasets
     for i in range(len(ru_URIs)):
@@ -184,22 +186,22 @@ def french_dataset_constructor(config, nr, fr, ru, ):
                        config['Predicates']['temporal_created']]
         nr_predicates += [config['Predicates']['type'], config['Predicates']['has_id'], config['Predicates']['label'], config['Predicates']['upper_level'],
                        config['Predicates']['temporal_created']]
-        fr_objects += [ru_types[i], ru_IDs[i], '\'' + ru_labels[i] + '\'', ru_UpperLevels[i],
-                    '\'1981-##-##\'^^xsd:date']
-        nr_objects += [ru_types[i], ru_IDs[i], '\'' + ru_labels[i] + '\'', ru_UpperLevels[i],
-                    '\'1981-##-##\'^^xsd:date']
+        fr_objects += [ru_types[i], ru_IDs[i], '\"' + ru_labels[i] + '\"', ru_UpperLevels[i],
+                    '\"1981-##-##\"^^xsd:date']
+        nr_objects += [ru_types[i], ru_IDs[i], '\"' + ru_labels[i] + '\"', ru_UpperLevels[i],
+                    '\"1981-##-##\"^^xsd:date']
 
     # Construction of the DataFrames and csv
     # Former Regions
     fr_dataset = pd.DataFrame({'Subject': pd.Series(fr_subjects),
                             'Predicate': pd.Series(fr_predicates),
                             'Object': pd.Series(fr_objects)})
-    fr_dataset.to_csv(path + "French_FAD.csv", sep='\t', index=False)
+    fr_dataset.to_csv(path + "French_FAD.csv", sep='\t', index=False, quoting=csv.QUOTE_NONE)
     # New Regions
     nr_dataset = pd.DataFrame({'Subject': pd.Series(nr_subjects),
                             'Predicate': pd.Series(nr_predicates),
                             'Object': pd.Series(nr_objects)})
-    nr_dataset.to_csv(path + "French_NAD.csv", sep='\t', index=False)
+    nr_dataset.to_csv(path + "French_NAD.csv", sep='\t', index=False, quoting=csv.QUOTE_NONE)
 
 
     return nr_dataset, fr_dataset
