@@ -10,25 +10,22 @@ config.read('config/config.ini')
 # "datasets/yago/yagoGeonamesTypes.tsv" file
 def get_geonamesAU(produced_filename):
     filename = config['yago']['types_file']
-    skiped_rows = 0
-    step = 500000
     administrative_divisions = pd.DataFrame()
     geoclasses = [config['Geonames']['first_order'], config['Geonames']['second_order'],
                   config['Geonames']['third_order'], config['Geonames']['fourth_order']]
-
     # reads dataset in chunks
+    skiped_rows = 0
+    step = 500000
     while True:
         try:
             geonames_data = pd.read_csv(filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t',
                                         quoting=csv.QUOTE_NONE)
         except pd.errors.EmptyDataError:
            break
-
-        # stores only the entities that are administrative units
-        administrative_divisions = administrative_divisions.append \
-            (geonames_data.loc[geonames_data[3].isin(geoclasses)][[1,2,3]])
-
         skiped_rows += step
+        # stores only the entities that are administrative units
+        administrative_divisions = \
+            administrative_divisions.append(geonames_data.loc[geonames_data[3].isin(geoclasses)][[1,2,3]])
 
     print("No Rows: ",administrative_divisions.shape[0])
     administrative_divisions = administrative_divisions.assign(e=pd.Series(["."] * administrative_divisions.shape[0]).values)
@@ -36,6 +33,32 @@ def get_geonamesAU(produced_filename):
                                     header=None, quoting=csv.QUOTE_NONE)
     return administrative_divisions
 
+
+# gets the cordinates of the entities that exist in target_filename
+def get_locationAU(target_filename, produced_filename):
+    src_filename = config['yago']['geonames_file']
+    properties = [config['Geonames']['has_lat'], config['Geonames']['has_long'],
+                  config['Geonames']['has_label'],config['Geonames']['located']]
+
+    target_dataset = pd.read_csv(target_filename, sep='\t', header=None,  quoting=csv.QUOTE_NONE)
+    URIs = set(target_dataset[0].values[1:])
+    total = 0
+    skiped_rows = 0
+    step = 1000000
+    while True:
+        try:
+            geonames_data = pd.read_csv(src_filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t',
+                                        quoting=csv.QUOTE_NONE)
+        except pd.errors.EmptyDataError:
+           break
+        skiped_rows += step
+        facts = geonames_data.loc[geonames_data[1].isin(URIs)]
+        results = facts.loc[facts[2].isin(properties)][[1, 2, 3]]
+        results = results.assign(e=pd.Series(["."] * results.shape[0]).values)
+        with open(produced_filename, 'a') as f:
+            results.to_csv(f, sep='\t', index=False, header=None, quoting=csv.QUOTE_NONE)
+        total += len(results)
+        print("No Rows: ", total, "/", skiped_rows)
 
 
 # Given two dataset, finds the facts of the URIs of target that exist in src
@@ -55,10 +78,10 @@ def map_yago_enities(src_filename, target_filename, produced_filename, target_da
         except pd.errors.EmptyDataError:
             break
         skiped_rows += step
-        out_facts = out_facts.append(date_facts.loc[date_facts[1].isin(URIs)])
-        print("No Rows: ", len(out_facts))
 
+        out_facts = out_facts.append(date_facts.loc[date_facts[1].isin(URIs)])
         out_facts = out_facts.assign(e=pd.Series(["."] * out_facts.shape[0]).values)
+
     out_facts.to_csv( produced_filename, sep='\t', index=False, header=None, quoting=csv.QUOTE_NONE)
     return out_facts
 
@@ -99,24 +122,27 @@ def Strabon_requirements_adjustments(filename, produced_file, big_file=False):
 
 
 
+
+
 '''
 adm_units = get_geonamesAU(configs, "produced/administrative_units.nt")
 Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "yagoLabels.tsv",
                                  config['File_Paths']['yago_files'] + "produced/yagoLabels_Strabon.tsv",
                                  big_file=True)
 
-
 map_yago_enities(config['yago']['yago_dates'],
                  config['File_Paths']['yago_files'] + "produced/administrative_units.tsv",
                  config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts.nt",
                  )
 
-
 map_yago_enities(config['yago']['yago_labels'],
                  config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts.nt",
                  config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels.nt",
                  )
-'''
+
 Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels.nt",
                                  config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels_Strabon.tsv",
                                  big_file=False)
+'''
+get_locationAU(config['File_Paths']['yago_files'] + "produced/administrative_units.nt",
+               config['File_Paths']['yago_files'] + "produced/administrative_units_locations.nt")
