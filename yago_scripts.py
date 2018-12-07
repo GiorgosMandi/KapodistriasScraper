@@ -7,7 +7,7 @@ import csv
 # creates a dataset with all the administrative units that exist in
 # "datasets/yago/yagoGeonamesTypes.tsv" file
 def get_geonamesAU(config, produced_filename):
-    filename = config['Geonames']['types_file']
+    filename = config['yago']['types_file']
     skiped_rows = 0
     step = 500000
     administrative_divisions = pd.DataFrame()
@@ -36,28 +36,28 @@ def get_geonamesAU(config, produced_filename):
     return administrative_divisions
 
 
-# finds the datefacts of the entities in dataset
-def get_yagoDateFacts(config,produced_filename, dataset=None):
-    filename = config['Geonames']['yago_dates']
+
+def map_yago_enities(src_filename, target_filename, produced_filename, target_dataset=None):
     step = 1000000
     skiped_rows = 0
-    au_date_facts = pd.DataFrame()
-    if dataset is None:
-        dataset = pd.read_csv(config['File_Paths']['yago_files']+"produced/administrative_units.tsv", sep='\t', header=None)
-    URIs = set(dataset[1].values[1:])
+    out_facts = pd.DataFrame()
+    if target_dataset is None:
+        target_dataset = pd.read_csv(target_filename, sep='\t', header=None)
+    URIs = set(target_dataset[1].values[1:])
 
     # reads dataset in chunks
     while True:
         try:
-            date_facts = pd.read_csv(filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t')[[1,2,3]]
+            date_facts = pd.read_csv(src_filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t')[[1,2,3]]
         except pd.errors.EmptyDataError:
             break
         skiped_rows += step
-        au_date_facts = au_date_facts.append(date_facts.loc[date_facts[1].isin(URIs)])
-        print("No Rows: ", len(au_date_facts))
+        out_facts = out_facts.append(date_facts.loc[date_facts[1].isin(URIs)])
+        print("No Rows: ", len(out_facts))
 
-        au_date_facts = au_date_facts.assign(e=pd.Series(["."] * au_date_facts.shape[0]).values)
-    au_date_facts.to_csv(config['File_Paths']['yago_files'] + produced_filename, sep='\t', index=False, header=None)
+        out_facts = out_facts.assign(e=pd.Series(["."] * out_facts.shape[0]).values)
+    out_facts.to_csv( produced_filename, sep='\t', index=False, header=None)
+
 
 
 # modifies the input dataset in order to be applied to Strabon
@@ -96,9 +96,13 @@ def Strabon_requirements_adjustments(config, filename, big_file=False):
     print("The produced file is located in   :", produced_file )
 
 
-configs = configparser.RawConfigParser()
-configs.read('config/config.ini')
+
+config = configparser.RawConfigParser()
+config.read('config/config.ini')
 #adm_units = get_geonamesAU(configs, "produced/administrative_units.nt")
-#get_yagoDateFacts(configs, "produced/administrative_units_datefacts.nt", dataset=adm_units)
+map_yago_enities(config['yago']['yago_dates'],
+                 config['File_Paths']['yago_files'] + "produced/administrative_units.tsv",
+                 config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts.nt",
+                 )
 #Strabon_requirements_adjustments(configs, "produced/administrative_units_datefacts.nt")
-Strabon_requirements_adjustments(configs,"yagoLabels.tsv",  big_file=True)
+#Strabon_requirements_adjustments(configs,"yagoLabels.tsv",  big_file=True)
