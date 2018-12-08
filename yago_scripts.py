@@ -1,5 +1,7 @@
 import pandas as pd
 import csv
+import os
+
 
 import configparser
 config = configparser.RawConfigParser()
@@ -36,6 +38,8 @@ def get_geonamesAU(produced_filename):
 
 # gets the cordinates of the entities that exist in target_filename
 def get_locationAU(target_filename, produced_filename):
+    if os.path.exists(produced_filename):
+        os.remove(produced_filename)
     src_filename = config['yago']['geonames_file']
     properties = [config['Geonames']['has_lat'], config['Geonames']['has_long'],
                   config['Geonames']['has_label'],config['Geonames']['located']]
@@ -63,9 +67,12 @@ def get_locationAU(target_filename, produced_filename):
 
 # Given two dataset, finds the facts of the URIs of target that exist in src
 def map_yago_enities(src_filename, target_filename, produced_filename, target_dataset=None):
+    if os.path.exists(produced_filename):
+        os.remove(produced_filename)
     step = 1000000
     skiped_rows = 0
     out_facts = pd.DataFrame()
+    total = 0
     if target_dataset is None:
         target_dataset = pd.read_csv(target_filename, sep='\t', header=None,  quoting=csv.QUOTE_NONE)
     URIs = set(target_dataset[0].values[1:])
@@ -73,34 +80,40 @@ def map_yago_enities(src_filename, target_filename, produced_filename, target_da
     # reads dataset in chunks
     while True:
         try:
-            date_facts = pd.read_csv(src_filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t',
+            facts = pd.read_csv(src_filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t',
                                      quoting=csv.QUOTE_NONE)[[1,2,3]]
         except pd.errors.EmptyDataError:
             break
         skiped_rows += step
 
-        out_facts = out_facts.append(date_facts.loc[date_facts[1].isin(URIs)])
+        out_facts = facts.loc[facts[1].isin(URIs)]
         out_facts = out_facts.assign(e=pd.Series(["."] * out_facts.shape[0]).values)
+        total += out_facts.shape[0]
+        print("No Rows: ", total, "/", skiped_rows)
+        with open(produced_filename, 'a') as f:
+            out_facts.to_csv(f, sep='\t', index=False, header=None, quoting=csv.QUOTE_NONE)
 
-    out_facts.to_csv( produced_filename, sep='\t', index=False, header=None, quoting=csv.QUOTE_NONE)
     return out_facts
 
 
 
 # modifies the input dataset in order to be applied to Strabon
 # in case of a big file the dataset is read in chunks
-def Strabon_requirements_adjustments(filename, produced_file, big_file=False):
+def Strabon_requirements_adjustments(filename, produced_filename, big_file=False):
     editing_subject = lambda x: "<yago:" + x[1:]
     editing_property = lambda x: (f"<{x}>" if ":" in x else f"<yago:{x[1:]}>") if x[0] != "<" else  (x if ":" in x else "<yago:" + x[1:])
     editing_object = lambda x: "<yago:" + x[1:] if  x[0] == "<" else (f'"{ x.split("^",1)[0]}"' if x[0]!='\"' else x)
 
     if not big_file:
+
         dataset = pd.read_csv(filename, header=None, sep='\t', quoting=csv.QUOTE_NONE)[[0,1,2,3]]
         dataset[0] = dataset[0].apply(editing_subject)
         dataset[1] = dataset[1].apply(editing_property)
         dataset[2] = dataset[2].apply(editing_object)
-        dataset.to_csv(produced_file, header=None, sep='\t', index=False, quoting=csv.QUOTE_NONE)
+        dataset.to_csv(produced_filename, header=None, sep='\t', index=False, quoting=csv.QUOTE_NONE)
     else:
+        if os.path.exists(produced_filename):
+            os.remove(produced_filename)
         step = 1000000
         skiped_rows = 0
         while True:
@@ -115,10 +128,10 @@ def Strabon_requirements_adjustments(filename, produced_file, big_file=False):
             dataset[1] = dataset[1].apply(editing_property)
             dataset[2] = dataset[2].apply(editing_object)
             dataset = dataset.assign(e=pd.Series(["."] * dataset.shape[0]).values)
-            with open(produced_file, 'a') as f:
+            with open(produced_filename, 'a') as f:
                 dataset.to_csv(f, sep='\t', index=False, header=None, quoting=csv.QUOTE_NONE)
 
-    print("The produced file is located in   :", produced_file )
+    print("The produced file is located in   :", produced_filename )
 
 
 
@@ -135,14 +148,14 @@ map_yago_enities(config['yago']['yago_dates'],
                  config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts.nt",
                  )
 
-map_yago_enities(config['yago']['yago_labels'],
-                 config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts.nt",
-                 config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels.nt",
-                 )
-
 Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels.nt",
                                  config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels_Strabon.tsv",
                                  big_file=False)
+
+get_locationAU(config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_datefacts.nt",
+               config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_locations.nt")
 '''
-get_locationAU(config['File_Paths']['yago_files'] + "produced/administrative_units.nt",
-               config['File_Paths']['yago_files'] + "produced/administrative_units_locations.nt")
+
+Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/administrative_units_locations.nt",
+                                 config['File_Paths']['yago_files'] + "produced/administrative_units_locations_Strabon.nt",
+                                 big_file=False)
