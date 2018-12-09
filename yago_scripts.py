@@ -40,7 +40,7 @@ def get_geonamesAU(produced_filename):
 def get_locationAU(target_filename, produced_filename):
     if os.path.exists(produced_filename):
         os.remove(produced_filename)
-    src_filename = config['yago']['geonames_file']
+    src_filename = config['yago']['yago_literals']
     properties = [config['Geonames']['has_lat'], config['Geonames']['has_long'],
                   config['Geonames']['has_label'],config['Geonames']['located']]
 
@@ -155,7 +155,3 @@ Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/
 get_locationAU(config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_datefacts.nt",
                config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_locations.nt")
 '''
-
-Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/administrative_units_locations.nt",
-                                 config['File_Paths']['yago_files'] + "produced/administrative_units_locations_Strabon.nt",
-                                 big_file=False)

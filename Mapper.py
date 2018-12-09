@@ -215,7 +215,7 @@ class Mapper:
                                    'Object': pd.Series(objects),
                                    'Ends' : pd.Series(["." *len(objects)])})
         dataset = dataset.append(geometries)
-        dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', index=False, quoting=csv.QUOTE_NONE)
+        dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', header=None, index=False, quoting=csv.QUOTE_NONE)
         print("Errors:\n")
         for error in errors:
             print("\t",error)
