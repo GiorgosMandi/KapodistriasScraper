@@ -168,13 +168,13 @@ def kapodistrias_ad_parser(config):
 
     # stores dictionaries into .csv
     rp = pd.DataFrame(region_prefectures)
-    rp.to_csv(path + "Regions_Prefectures.csv", sep='\t', columns=rp.columns,
+    rp.to_csv(path + "used/Regions_Prefectures.csv", sep='\t', columns=rp.columns,
               index=False)
     pm = pd.DataFrame(prefectures_municipalities)
-    pm.to_csv(path + "Prefectures_Municipalities.csv", sep='\t', columns=pm.columns,
+    pm.to_csv(path + "used/Prefectures_Municipalities.csv", sep='\t', columns=pm.columns,
               index=False)
     md = pd.DataFrame(municipalities_districts)
-    md.to_csv(path + "Municipalities_Districts.csv", sep='\t', columns=md.columns,
+    md.to_csv(path + "used/Municipalities_Districts.csv", sep='\t', columns=md.columns,
               index=False)
     return rp, pm, md
 

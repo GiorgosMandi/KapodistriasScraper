@@ -23,9 +23,9 @@ else:
 # their wikipedia pages -- Then it constructs the datasets in RDF form
 if args.country == 'G':
     try:
-        rc = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "Regions_Prefectures.csv", sep='\t')
-        cm = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "Prefectures_Municipalities.csv", sep='\t')
-        md = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "Municipalities_Districts.csv", sep='\t')
+        rc = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "used/Regions_Prefectures.csv", sep='\t')
+        cm = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "used/Prefectures_Municipalities.csv", sep='\t')
+        md = pd.read_csv(config['File_Paths']['kapodistrias_folder'] + "used/Municipalities_Districts.csv", sep='\t')
     except FileNotFoundError:
         rc, cm, md = kapodistrias_ad_parser(config)
     dataset = kapodistria_dataset_constructor(config, rc, cm, md)
