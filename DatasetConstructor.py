@@ -14,7 +14,7 @@ def kapodistria_dataset_constructor(config, rc, cm, md):
     # REGIONS
     regions_labels = list(rc.columns)
     regions_IDs = ["%02d" % i + '000000' for i in range(1, len(regions_labels)+1)]
-    regions_UpperLevel = ['<Greece>'] * len(regions_labels)
+    regions_UpperLevel = ['<kapo:Greece>'] * len(regions_labels)
     regions_URIs = ['<' + config['Wiki_Paths']['el_wiki2'] + label.replace(' ', '_') + '>'
                     for label in regions_labels]
 
@@ -54,13 +54,13 @@ def kapodistria_dataset_constructor(config, rc, cm, md):
         districts_labels += m_districts
         districts_IDs += [municipalities_IDs[index][:-2] + "%02d" % i for i in range(1, len(m_districts)+1)]
         districts_UpperLevel += [municipalities_URIs[index]] * len(m_districts)
-        districts_URIs += ['<Kapodistrias_district_' + label.replace(' ', '_') + '>'
+        districts_URIs += ['<kapo:Kapodistrias_district_' + label.replace(' ', '_') + '>'
                            for label in m_districts]
 
     # all the gathered data are fused in order to create csv's columns.
     # TemporalID - Subjects - Predicate - Objects
     URIs = regions_URIs + prefectures_URIs + municipalities_URIs + districts_URIs
-    IDs = ['<Kapodistrias_' + ids + '>' for ids in regions_IDs + prefectures_IDs + municipalities_IDs + districts_IDs]
+    IDs = ['<kapo:Kapodistrias_' + ids + '>' for ids in regions_IDs + prefectures_IDs + municipalities_IDs + districts_IDs]
     labels = [label for label in regions_labels + prefectures_labels + municipalities_labels + districts_labels]
     UpperLevels = regions_UpperLevel + prefectures_UpperLevel + municipalities_UpperLevel + districts_UpperLevel
     types = [config['Types']['regions']] * len(regions_URIs) +              \

@@ -155,7 +155,7 @@ def kapodistrias_ad_parser(config):
                                     district_str = re.sub('\d|\[|]', '', district_str)
                                     if district_str[0] == ' ':
                                         district_str = district_str[1:]
-                                    if municipality_str[-1] == ' ':
+                                    while district_str[-1] == ' ':
                                         district_str = district_str[:-1]
 
                                     districts.append(district_str)
