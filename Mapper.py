@@ -213,9 +213,10 @@ class Mapper:
         geometries = pd.DataFrame({'Subject': pd.Series(subjects),
                                    'Predicate': pd.Series(predicates),
                                    'Object': pd.Series(objects),
-                                   'Ends' : pd.Series(["." *len(objects)])})
+                                   'Ends' : pd.Series(["."] *len(objects))})
         dataset = dataset.append(geometries)
-        dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', header=None, index=False, quoting=csv.QUOTE_NONE)
+        dataset.to_csv(path + "Kapodistrias_AD_G.csv", sep='\t', header=None, index=False, quoting=csv.QUOTE_NONE,
+                       encoding="UTF-8")
         print("Errors:\n")
         for error in errors:
             print("\t",error)

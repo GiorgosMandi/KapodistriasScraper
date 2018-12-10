@@ -91,7 +91,8 @@ def kapodistria_dataset_constructor(config, rc, cm, md):
                             'Object': pd.Series(objects),
                             'Ends' : pd.Series(["."] * len(objects))
                             })
-    dataset.to_csv(path + "Kapodistrias_AD.csv", sep='\t', index=False, quoting=csv.QUOTE_NONE)
+    dataset.to_csv(path + "Kapodistrias_AD.csv", sep='\t', index=False, quoting=csv.QUOTE_NONE,
+                   header=None, encoding="UTF-8")
 
     return dataset
 
