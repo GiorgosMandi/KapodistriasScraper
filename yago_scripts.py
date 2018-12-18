@@ -105,7 +105,6 @@ def Strabon_requirements_adjustments(filename, produced_filename, big_file=False
     editing_object = lambda x: "<yago:" + x[1:] if  x[0] == "<" else (f'"{ x.split("^",1)[0]}"' if x[0]!='\"' else x)
 
     if not big_file:
-
         dataset = pd.read_csv(filename, header=None, sep='\t', quoting=csv.QUOTE_NONE)[[0,1,2,3]]
         dataset[0] = dataset[0].apply(editing_subject)
         dataset[1] = dataset[1].apply(editing_property)
@@ -134,7 +133,34 @@ def Strabon_requirements_adjustments(filename, produced_filename, big_file=False
     print("The produced file is located in   :", produced_filename )
 
 
-
+def dataset_repair(filename):
+    dataset = pd.read_csv(filename, header=None, sep='\t', quoting=csv.QUOTE_NONE)
+    Subject = []
+    Object = []
+    Predicate = []
+    target = ['rdfs:label', 'skos:prefLabel', 'monto:asWKT', 'yago:hasLatitude', 'yago:hasLongitude']
+    for index,row in dataset.iterrows():
+        row[0] = row[0].replace("yago:","")
+        row[2] = row[2].replace("yago:","")
+        if row[0][0] != "<": row[0] = f"<{row[0]}>"
+        if row[1][0] != "<": row[1] = f"<{row[1]}>"
+        try:
+            if row[1][1:-1] in target:
+                if row[2][0] != "\"":
+                    row[2] = f'"{row[2]}".'
+            else:
+                if row[2][0] != "<": row[2] = f"<{row[2]}>."
+        except TypeError:
+            print(row)
+            print(index)
+            continue
+        Subject.append(row[0])
+        Predicate.append(row[1])
+        Object.append(row[2])
+    fixed_dataset = pd.DataFrame({'s' : pd.Series(Subject),
+                                  'p' : pd.Series(Predicate),
+                                  'o' : pd.Series(Object)})
+    fixed_dataset.to_csv(filename, sep='\t', index=False, header=None, quoting=csv.QUOTE_NONE)
 
 
 '''
@@ -155,3 +181,16 @@ Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/
 get_locationAU(config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_datefacts.nt",
                config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_locations.nt")
 '''
+
+dataset_repair("datasets/yago/produced/datefacts/AUDF_1o.tsv")
+dataset_repair("datasets/yago/produced/datefacts/AUDF_3o.tsv")
+dataset_repair("datasets/yago/produced/datefacts/AUDF_2o.tsv")
+dataset_repair("datasets/yago/produced/administrative_units/AU_1o.tsv")
+dataset_repair("datasets/yago/produced/administrative_units/AU_2o.tsv")
+dataset_repair("datasets/yago/produced/administrative_units/AU_3o.tsv")
+
+
+#dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Regions.nt")
+#dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Prefectures.nt")
+#dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Municipalities.nt")
+
