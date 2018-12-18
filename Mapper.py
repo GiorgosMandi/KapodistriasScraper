@@ -92,7 +92,7 @@ class Mapper:
 
         # The Geometries in WKT form
         regions_wkt = pd.read_csv(wkt_folder + 'Regions_WKT.csv', encoding='ISO-8859-7')
-        prefectures_wkt = pd.read_csv(wkt_folder + 'Perfectures_WKT.csv', encoding='ISO-8859-7')
+        prefectures_wkt = pd.read_csv(wkt_folder + 'Prefectures_WKT.csv', encoding='ISO-8859-7')
         municipalities_wkt = pd.read_csv(wkt_folder + 'Municipalities_WKT.csv', encoding='ISO-8859-7')
 
         # Maps Regions' Geometries (WKT - Shapefile) and stores them in a dictionary
@@ -165,7 +165,7 @@ class Mapper:
                     continue
 
                 # stores them in RDF
-                geom_id = "<kapo:G_" + entity_ID[1:]
+                geom_id = "<kapo:G_" + entity_ID[6:]
                 if entity_type == self.config['Types']['regions']:
                     objects += [geom_id, "\"" + region_geometries[key] + "\""]
                     subjects += [entity_URI, geom_id]

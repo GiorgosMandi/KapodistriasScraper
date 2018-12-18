@@ -4,7 +4,7 @@ import csv
 
 def kapodistria_dataset_constructor(config, rc, cm, md):
     path = config['File_Paths']['kapodistrias_folder']
-    remained_units = pd.read_csv(path + 'Remained.csv', sep='\t')['Remained'].values
+    remained_units = pd.read_csv(path + 'used/Remained.csv', sep='\t')['Remained'].values
 
     # reads the entities from the dataframes and constructs/stores the neseccary values
     # IDs will be Kapodistria_RRCCMM where RR is region's id, CC prefecture's id and MM municipality's id
