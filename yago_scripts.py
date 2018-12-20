@@ -66,7 +66,7 @@ def get_locationAU(target_filename, produced_filename):
 
 
 # Given two dataset, finds the facts of the URIs of target that exist in src
-def map_yago_enities(src_filename, target_filename, produced_filename, target_dataset=None):
+def map_yago_enities(src_filename, target_filename, produced_filename, target_dataset=None, property=None, object=None):
     if os.path.exists(produced_filename):
         os.remove(produced_filename)
     step = 1000000
@@ -75,18 +75,19 @@ def map_yago_enities(src_filename, target_filename, produced_filename, target_da
     total = 0
     if target_dataset is None:
         target_dataset = pd.read_csv(target_filename, sep='\t', header=None,  quoting=csv.QUOTE_NONE)
+    if property is not None:
+        target_dataset = target_dataset.loc[(target_dataset[1]==property) & (target_dataset[2]==object)]
     URIs = set(target_dataset[0].values[1:])
 
     # reads dataset in chunks
     while True:
         try:
             facts = pd.read_csv(src_filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t',
-                                     quoting=csv.QUOTE_NONE)[[1,2,3]]
+                                     quoting=csv.QUOTE_NONE)[[0,1,2]]
         except pd.errors.EmptyDataError:
             break
         skiped_rows += step
-
-        out_facts = facts.loc[facts[1].isin(URIs)]
+        out_facts = facts.loc[facts[0].isin(URIs)]
         out_facts = out_facts.assign(e=pd.Series(["."] * out_facts.shape[0]).values)
         total += out_facts.shape[0]
         print("No Rows: ", total, "/", skiped_rows)
@@ -169,10 +170,11 @@ Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "yagoLabel
                                  config['File_Paths']['yago_files'] + "produced/yagoLabels_Strabon.tsv",
                                  big_file=True)
 
-map_yago_enities(config['yago']['yago_dates'],
-                 config['File_Paths']['yago_files'] + "produced/administrative_units.tsv",
-                 config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts.nt",
-                 )
+map_yago_enities(config['File_Paths']['yago_files'] + "produced/administrative_units/administrative_units_geonames.nt",
+                 config['File_Paths']['yago_files'] + "produced/administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "produced/administrative_units/geonames_1o.nt",
+                 property="rdf:type",
+                 object="<geoclass_first-order_administrative_division>")
 
 Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels.nt",
                                  config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels_Strabon.tsv",
@@ -182,15 +184,4 @@ get_locationAU(config['File_Paths']['yago_files'] + "produced/datefacts/administ
                config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_locations.nt")
 '''
 
-dataset_repair("datasets/yago/produced/datefacts/AUDF_1o.tsv")
-dataset_repair("datasets/yago/produced/datefacts/AUDF_3o.tsv")
-dataset_repair("datasets/yago/produced/datefacts/AUDF_2o.tsv")
-dataset_repair("datasets/yago/produced/administrative_units/AU_1o.tsv")
-dataset_repair("datasets/yago/produced/administrative_units/AU_2o.tsv")
-dataset_repair("datasets/yago/produced/administrative_units/AU_3o.tsv")
-
-
-#dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Regions.nt")
-#dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Prefectures.nt")
-#dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Municipalities.nt")
-
+dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Districts.nt")
