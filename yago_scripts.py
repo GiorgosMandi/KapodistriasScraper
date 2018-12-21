@@ -83,11 +83,11 @@ def map_yago_enities(src_filename, target_filename, produced_filename, target_da
     while True:
         try:
             facts = pd.read_csv(src_filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t',
-                                     quoting=csv.QUOTE_NONE)[[0,1,2]]
+                                     quoting=csv.QUOTE_NONE)[[1,2,3]]
         except pd.errors.EmptyDataError:
             break
         skiped_rows += step
-        out_facts = facts.loc[facts[0].isin(URIs)]
+        out_facts = facts.loc[facts[1].isin(URIs)]
         out_facts = out_facts.assign(e=pd.Series(["."] * out_facts.shape[0]).values)
         total += out_facts.shape[0]
         print("No Rows: ", total, "/", skiped_rows)
@@ -165,23 +165,27 @@ def dataset_repair(filename):
 
 
 '''
-adm_units = get_geonamesAU(configs, "produced/administrative_units.nt")
+adm_units = get_geonamesAU(configs, "administrative_units.nt")
 Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "yagoLabels.tsv",
-                                 config['File_Paths']['yago_files'] + "produced/yagoLabels_Strabon.tsv",
+                                 config['File_Paths']['yago_files'] + "yagoLabels_Strabon.tsv",
                                  big_file=True)
 
-map_yago_enities(config['File_Paths']['yago_files'] + "produced/administrative_units/administrative_units_geonames.nt",
-                 config['File_Paths']['yago_files'] + "produced/administrative_units/administrative_units.nt",
-                 config['File_Paths']['yago_files'] + "produced/administrative_units/geonames_1o.nt",
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units_geonames.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/geonames_1o.nt",
                  property="rdf:type",
                  object="<geoclass_first-order_administrative_division>")
 
-Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels.nt",
-                                 config['File_Paths']['yago_files'] + "produced/administrative_units_datefacts_labels_Strabon.tsv",
+Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "administrative_units_datefacts_labels.nt",
+                                 config['File_Paths']['yago_files'] + "administrative_units_datefacts_labels_Strabon.tsv",
                                  big_file=False)
 
-get_locationAU(config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_datefacts.nt",
-               config['File_Paths']['yago_files'] + "produced/datefacts/administrative_units_locations.nt")
+get_locationAU(config['File_Paths']['yago_files'] + "datefacts/administrative_units_datefacts.nt",
+               config['File_Paths']['yago_files'] + "datefacts/administrative_units_locations.nt")
 '''
 
-dataset_repair("datasets/Kapodistrias_scheme/Kapodistrias_Districts.nt")
+map_yago_enities(config['File_Paths']['yago_files'] + "yagoDateFacts.tsv",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/datefacts_4o.nt",
+                 property="rdf:type",
+                 object="<geoclass_fourth-order_administrative_division>")
