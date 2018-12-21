@@ -165,7 +165,7 @@ class Mapper:
                     continue
 
                 # stores them in RDF
-                geom_id = "<kapo:G_" + entity_ID[6:]
+                geom_id = "<Geometry_" + entity_ID[6:]
                 if entity_type == self.config['Types']['regions']:
                     objects += [geom_id, "\"" + region_geometries[key] + "\""]
                     subjects += [entity_URI, geom_id]
