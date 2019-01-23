@@ -119,7 +119,7 @@ class Mapper:
 
             # initialise varaibles
             if row[1]['Predicate'] == self.config['Predicates']['type']:
-                entity_type = row[1]['Object']
+                entity_type = row[1]['Object'][1:-1]
             if row[1]['Predicate'] == self.config['Predicates']['kapodistrias_id']:
                 entity_ID = row[1]['Object']
             if row[1]['Predicate'] == self.config['Predicates']['label']:
@@ -165,7 +165,7 @@ class Mapper:
                     continue
 
                 # stores them in RDF
-                geom_id = "<Geometry_" + entity_ID[6:]
+                geom_id = "<Geometry_" + entity_ID[1:-1] + ">"
                 if entity_type == self.config['Types']['regions']:
                     objects += [geom_id, "\"" + region_geometries[key] + "\""]
                     subjects += [entity_URI, geom_id]
