@@ -14,7 +14,8 @@ def get_geonamesAU(produced_filename):
     filename = config['yago']['types_file']
     administrative_divisions = pd.DataFrame()
     geoclasses = [config['Geonames']['first_order'], config['Geonames']['second_order'],
-                  config['Geonames']['third_order'], config['Geonames']['fourth_order']]
+                  config['Geonames']['third_order'], config['Geonames']['fourth_order'],
+                  config['Geonames']['adm_div']]
     # reads dataset in chunks
     skiped_rows = 0
     step = 500000
@@ -66,7 +67,7 @@ def get_locationAU(target_filename, produced_filename):
 
 
 # Given two dataset, finds the facts of the URIs of target that exist in src
-def map_yago_enities(src_filename, target_filename, produced_filename, target_dataset=None, property=None, object=None):
+def map_yago_enities(target_filename, src_filename, produced_filename, target_dataset=None, property=None, object=None):
     if os.path.exists(produced_filename):
         os.remove(produced_filename)
     step = 1000000
@@ -78,16 +79,15 @@ def map_yago_enities(src_filename, target_filename, produced_filename, target_da
     if property is not None:
         target_dataset = target_dataset.loc[(target_dataset[1]==property) & (target_dataset[2]==object)]
     URIs = set(target_dataset[0].values[1:])
-
     # reads dataset in chunks
     while True:
         try:
             facts = pd.read_csv(src_filename, header=None, skiprows=skiped_rows, nrows=step, sep='\t',
-                                     quoting=csv.QUOTE_NONE)[[1,2,3]]
+                                     quoting=csv.QUOTE_NONE)[[0,1,2]]
         except pd.errors.EmptyDataError:
             break
         skiped_rows += step
-        out_facts = facts.loc[facts[1].isin(URIs)]
+        out_facts = facts.loc[facts[0].isin(URIs)]
         out_facts = out_facts.assign(e=pd.Series(["."] * out_facts.shape[0]).values)
         total += out_facts.shape[0]
         print("No Rows: ", total, "/", skiped_rows)
@@ -139,10 +139,12 @@ def dataset_repair(filename):
     Subject = []
     Object = []
     Predicate = []
-    target = ['rdfs:label', 'skos:prefLabel', 'monto:asWKT', 'yago:hasLatitude', 'yago:hasLongitude']
+    target = ['rdfs:label', 'skos:prefLabel', 'monto:asWKT', 'yago:hasLatitude', 'yago:hasLongitude',
+              'monto:wasDestroyedOnDate','monto:wasCreatedOnDate','monto:asWKT', 'monto:hasKapodistrias_Type'
+              ,'monto:hasKapodistrias_ID']
     for index,row in dataset.iterrows():
-        row[0] = row[0].replace("yago:","")
-        row[2] = row[2].replace("yago:","")
+        #row[0] = row[0].replace("yago:","")
+        #row[2] = row[2].replace("yago:","")
         if row[0][0] != "<": row[0] = f"<{row[0]}>"
         if row[1][0] != "<": row[1] = f"<{row[1]}>"
         try:
@@ -183,9 +185,162 @@ Strabon_requirements_adjustments(config['File_Paths']['yago_files'] + "administr
 get_locationAU(config['File_Paths']['yago_files'] + "datefacts/administrative_units_datefacts.nt",
                config['File_Paths']['yago_files'] + "datefacts/administrative_units_locations.nt")
 '''
-
-map_yago_enities(config['File_Paths']['yago_files'] + "yagoDateFacts.tsv",
-                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+'''
+print("=================DATEFACTS============================")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_datefacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/datefacts_1o.nt",
+                 property="rdf:type",
+                 object="<geoclass_first-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_datefacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/datefacts_2o.nt",
+                 property="rdf:type",
+                 object="<geoclass_second-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_datefacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/datefacts_3o.nt",
+                 property="rdf:type",
+                 object="<geoclass_third-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_datefacts.nt",
                  config['File_Paths']['yago_files'] + "administrative_units/datefacts_4o.nt",
                  property="rdf:type",
                  object="<geoclass_fourth-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_datefacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/datefacts_new.nt",
+                 property="rdf:type",
+                 object="<geoclass_administrative_division>")
+print("\n\n")
+print("\n\n=================Labels============================")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_labels.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/labels_1o.nt",
+                 property="rdf:type",
+                 object="<geoclass_first-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_labels.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/labels_2o.nt",
+                 property="rdf:type",
+                 object="<geoclass_second-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_labels.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/labels_3o.nt",
+                 property="rdf:type",
+                 object="<geoclass_third-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_labels.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/labels_4o.nt",
+                 property="rdf:type",
+                 object="<geoclass_fourth-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_labels.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/labels_new.nt",
+                 property="rdf:type",
+                 object="<geoclass_administrative_division>")
+print("\n\n")
+print("\n\n=================Literals============================")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_literalFacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/literals_1o.nt",
+                 property="rdf:type",
+                 object="<geoclass_first-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_literalFacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/literals_2o.nt",
+                 property="rdf:type",
+                 object="<geoclass_second-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_literalFacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/literals_3o.nt",
+                 property="rdf:type",
+                 object="<geoclass_third-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_literalFacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/literals_4o.nt",
+                 property="rdf:type",
+                 object="<geoclass_fourth-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_literalFacts.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/literals_new.nt",
+                 property="rdf:type",
+                 object="<geoclass_administrative_division>")
+print("\n\n")
+print("\n\n=================Geonames============================")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_geonames.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/geonames_1o.nt",
+                 property="rdf:type",
+                 object="<geoclass_first-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_geonames.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/geonames_2o.nt",
+                 property="rdf:type",
+                 object="<geoclass_second-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_geonames.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/geonames_3o.nt",
+                 property="rdf:type",
+                 object="<geoclass_third-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_geonames.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/geonames_4o.nt",
+                 property="rdf:type",
+                 object="<geoclass_fourth-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units_geonames.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/geonames_new.nt",
+                 property="rdf:type",
+                 object="<geoclass_administrative_division>")
+print("\n\n")
+print("\n\n=================Type============================")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/types   _1o.nt",
+                 property="rdf:type",
+                 object="<geoclass_first-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/types_2o.nt",
+                 property="rdf:type",
+                 object="<geoclass_second-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/types_3o.nt",
+                 property="rdf:type",
+                 object="<geoclass_third-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/types_4o.nt",
+                 property="rdf:type",
+                 object="<geoclass_fourth-order_administrative_division>")
+print("\n\n")
+map_yago_enities(config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/administrative_units.nt",
+                 config['File_Paths']['yago_files'] + "administrative_units/types_new.nt",
+                 property="rdf:type",
+                 object="<geoclass_administrative_division>")'''
+
+dataset_repair(config['File_Paths']['kapodistrias_folder']+'K_Prefectures.nt')
+dataset_repair(config['File_Paths']['kapodistrias_folder']+'K_Municipalities.nt')
+dataset_repair(config['File_Paths']['kapodistrias_folder']+'K_Districts.nt')
