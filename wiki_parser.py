@@ -24,8 +24,8 @@ def kapodistrias_ad_parser(config):
     data = sub_tables[0].find_all('td')
 
     # parses the wikipedia pages -- firstly stores the region, then stores the
-    # prefecture and request to the wikipedia page to get prefectures' municipalities.
-    # The data are stored in dictionaries where the key is the region/prefectures
+    # prefecture and requests to the wikipedia page to get prefectures' municipalities.
+    # The data is stored in dictionaries where the keys are the region/prefectures
     # and the values are the prefectures/municipalities that belongs to it.
     # NOTE: special treatment for Attica Region
     r_key = re.sub('\n', '', data[0].get_text())
@@ -109,6 +109,8 @@ def kapodistrias_ad_parser(config):
                 munic_soup = BeautifulSoup(munic_page.content, 'html.parser')
                 sub_html = list(munic_soup.children)[2]
                 municipalities_list = sub_html.find_all('ul')[1]
+                if "νομού Ηρακλείου" in prefecture.get_text():
+                    municipalities_list = sub_html.find_all('ul')[2]
                 municipalities_li = municipalities_list.find_all('li')
                 municipalities = []
                 for municipality in municipalities_li:
