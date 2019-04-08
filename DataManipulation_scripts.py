@@ -250,7 +250,7 @@ concat([config['File_Paths']['yago_files'] + "geoclass_locality/literalFacts.nt"
 
 
 
-def map_datefacts(dataset_location, bothdataset_location, onlydataset_location, option):
+def map_datefacts(dataset_location, bothdataset_location, onlydataset_location, result_location, option):
     dataset = pd.read_csv(dataset_location,  sep="\t", header=None,  quoting=csv.QUOTE_NONE)
     URIs = dataset[0].values
     URIs =  list(dict.fromkeys(URIs))
@@ -262,53 +262,51 @@ def map_datefacts(dataset_location, bothdataset_location, onlydataset_location, 
     except pd.errors.EmptyDataError:
         pass
 
-    datefacts = pd.DataFrame();
+    datefacts = pd.DataFrame()
     for uri in URIs :
 
         if uri in both:
             datefacts = datefacts.append(pd.Series({0: uri,
-                              1: "<http://kr.di.uoa.gr/yago-extension/ontology/officialCreationDate>",
+                              1: "<http://kr.di.uoa.gr/yago4/ontology/officialCreationDate>",
                               2: "\"1997-##-##\"^^<http://www.w3.org/2001/XMLSchema#date>",
                               3: "."}), ignore_index=True)
         else:
             if option == "kapo":
                 if uri in only:
                     datefacts = datefacts.append(pd.Series({0: uri,
-                                      1: "<http://kr.di.uoa.gr/yago-extension/ontology/officialCreationDate>",
+                                      1: "<http://kr.di.uoa.gr/yago4/ontology/officialCreationDate>",
                                       2: "\"1997-##-##\"^^<http://www.w3.org/2001/XMLSchema#date>",
                                       3: "."}), ignore_index=True)
                     datefacts = datefacts.append(pd.Series({0: uri,
-                                      1: "<http://kr.di.uoa.gr/yago-extension/ontology/officialTerminationDate>",
+                                      1: "<http://kr.di.uoa.gr/yago4/ontology/officialTerminationDate>",
                                       2: "\"2011-##-##\"^^<http://www.w3.org/2001/XMLSchema#date>",
                                       3: "."}), ignore_index=True)
             elif option == "kalli":
                 if uri in only:
                     datefacts = datefacts.append(pd.Series({0: uri,
-                                      1: "<http://kr.di.uoa.gr/yago-extension/ontology/officialCreationDate>",
+                                      1: "<http://kr.di.uoa.gr/yago4/ontology/officialCreationDate>",
                                       2: "\"2011-##-##\"^^<http://www.w3.org/2001/XMLSchema#date>",
                                       3: "."}), ignore_index=True)
     result = dataset.append(datefacts)
 
-    result.to_csv("/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kapodistrias/municipalities/matched.nt",
+    result.to_csv(result_location,
                   sep='\t', index=False, header=None, quoting=csv.QUOTE_NONE, escapechar='\\',
                 )
 
 
 
 
-#map_datefacts("/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kapodistrias/GRC_mundist-ppl_matches/matched.nt",
-#              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/merged/FourthOrder/both",
-#              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/merged/FourthOrder/onlyKapodistrias"
-#             ,"kapo")
 
-#map_datefacts("/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kallikratis/kallikratisMunUnitsCommunities/matched.nt",
-#              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/merged/FourthOrder/both",
-#              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/merged/FourthOrder/onlyKallikratis"
-#             ,"kalli")
+map_datefacts("/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kallikratis/kallikratisMunUnitsCommunities/matched_noDatefacts.nt",
+              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/YAGO_Results/helping_files/FourthOrder/both",
+              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/YAGO_Results/helping_files/FourthOrder/onlyKallikratis",
+              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kallikratis/kallikratisMunUnitsCommunities/matched.nt"
+             ,"kalli")
 
-map_datefacts("/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kapodistrias/municipalities/matched_noDateFacts.nt",
-              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/helping_files/Municipalitites/both",
-              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/helping_files/Municipalitites/onlyKapodistrias"
+map_datefacts("/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kapodistrias/GRC_mundist-ppl_matches/matched_noDatefacts.nt",
+              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/YAGO_Results/helping_files/FourthOrder/both",
+              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/YAGO_Results/helping_files/FourthOrder/onlyKapodistrias",
+              "/home/giorgosmandi/Documents/DIT/Thesis/Yago_Extension/Results/Kapodistrias/GRC_mundist-ppl_matches/matched.nt"
              ,"kapo")
 
 
