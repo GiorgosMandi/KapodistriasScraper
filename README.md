@@ -1,1 +1,7 @@
-thesis-temporal_dimension -yago
+# KapodistriasScraper
+
+**KapodistriasScrapper** is a python project developed in order to construct an RDF dataset of the Kapodistrias administrative division in RDF. This dataset was used in order to extend the YAGO Knowledge Graph with Temporal and Geospatial information about the Greek Administrative units.
+
+The data originates from [this Wikipedia page]([https://el.wikipedia.org/wiki/%CE%94%CE%B9%CE%BF%CE%B9%CE%BA%CE%B7%CF%84%CE%B9%CE%BA%CE%AE_%CE%B4%CE%B9%CE%B1%CE%AF%CF%81%CE%B5%CF%83%CE%B7_%CF%84%CE%B7%CF%82_%CE%95%CE%BB%CE%BB%CE%AC%CE%B4%CE%B1%CF%82_1997](https://el.wikipedia.org/wiki/%CE%94%CE%B9%CE%BF%CE%B9%CE%BA%CE%B7%CF%84%CE%B9%CE%BA%CE%AE_%CE%B4%CE%B9%CE%B1%CE%AF%CF%81%CE%B5%CF%83%CE%B7_%CF%84%CE%B7%CF%82_%CE%95%CE%BB%CE%BB%CE%AC%CE%B4%CE%B1%CF%82_1997)), and it was recursively scrapped using python's Beautifull Soup library. Then the scripts interlinks the retrieved Administrative Units with temporal information and with their Geometries,  which are in the form of Well Known Text (WKT). In the end, the produced dataset contains Regions (Περιφέρειες), Prefectures (Νομοί), Municipalities (Δήμοι), Communities (Κοινότητες) and Departments (Διοικητικές διαιρέσεις) and for each unit there is information about its name, type, links that point to its upper level, geometry and temporal information.
+
+This is part of a research conducted by the Depatment of Informatics of the Univercity of Athens.
